@@ -37,6 +37,8 @@ button.go{background:#2e8b57;border-color:#2e8b57;color:#fff;font-weight:700}
 .node{cursor:grab}.pal{cursor:copy}
 .node.run .sh{stroke:#ff7a00;stroke-width:4}
 .node.bad .sh{stroke:#e02d2d;stroke-width:4}
+.node.tgt .sh{stroke:#2e8b57;stroke-width:4}
+#tmp{pointer-events:none}
 .port{fill:#fff;stroke:var(--acc);stroke-width:2.2;cursor:crosshair}
 .port:hover{fill:var(--acc)}
 .inp{fill:var(--edge)}
@@ -46,17 +48,30 @@ button.go{background:#2e8b57;border-color:#2e8b57;color:#fff;font-weight:700}
 #msg.ok{background:var(--okbg);color:var(--okc)}#msg.bad{background:var(--badbg);color:var(--badc)}
 ol#log{margin:6px 0 0;padding-left:22px;font-size:13px;color:var(--mut);max-height:140px;overflow:auto}
 .legend{font-size:12px;color:var(--mut);margin-top:8px}
+#pin{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+#pin[hidden]{display:none}
+.dlg{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:20px;width:100%;max-width:320px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.dlg h3{margin:0 0 4px;font-size:18px}.dlg p{margin:0 0 12px;color:var(--mut);font-size:14px}
+.dlg input{width:100%;font:inherit;font-size:22px;letter-spacing:8px;text-align:center;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+#pe{min-height:20px;margin:6px 0;color:var(--badc);font-size:13px;text-align:center}
+.dlg .row{display:flex;gap:8px;justify-content:flex-end}
+
+.tabs{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.tabs button{font-weight:700}
+.tabs button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.tabs button[data-lock]{opacity:.65}
+.mission b{display:block;color:var(--acc);margin-bottom:2px}
 </style>
 </head>
 <body>
 <header>
-  <h1>🤖 เกม Flowchart ควบคุมแขนกล</h1>
-  <p>ออกแบบผังงานสั่ง Servo ให้แขนกลหยิบกล่องไปวางให้ถูกที่ แล้วกด “เริ่มทำงาน” เพื่อดูแขนกลทำงานตามผังของคุณ</p>
+  <h1>เกม Flowchart ควบคุมแขนกล</h1>
+  <p>แขนกลมี Servo 5 ตัว — ออกแบบผังงานสั่ง Servo แล้วกด “เริ่มทำงาน” เพื่อดูแขนกลทำงานตามผังของคุณ</p>
 </header>
 <main>
   <section class="card">
-    <div class="mission"><b>โจทย์:</b> Design a flowchart to control a robotic arm so that it picks up <b class="r">the red box</b> and places it at <b class="r">point A on the left side</b>, then picks up <b class="g">the green box</b> and places it at <b class="g">point B on the right side</b>.
-    <small>Servo1 = หมุนฐาน (ซ้าย/ขวา) · Servo2 = ไหล่ (ขึ้น/ลง/ไปข้างหน้า) · Servo5 = ข้อศอก · Servo6 = มือจับ · Servo1 หมุนทีละ 8° จึงต้องใช้ Decision วนซ้ำจนถึงจุดหมาย</small></div>
+    <div class="tabs" id="tabs"></div>
+    <div class="mission"><b id="mt"></b><div id="mx"></div><small id="hn"></small></div>
     <div class="bar">
       <button class="go" id="run">▶ เริ่มทำงาน</button>
       <button id="reset">↺ รีเซ็ตแขนกล</button>
@@ -69,9 +84,10 @@ ol#log{margin:6px 0 0;padding-left:22px;font-size:13px;color:var(--mut);max-heig
   </section>
   <section class="side">
     <div class="card">
-      <h2>จำลองการทำงานของแขนกล</h2>
+      <h2>จำลองการทำงานของแขนกล (Servo 1–5)</h2>
       <svg id="sc" viewBox="0 0 600 420" role="img" aria-label="แขนกลและกล่อง"></svg>
-      <div id="msg">ลากบล็อกมาต่อกันเป็นผังงาน เริ่มจาก “Start” และจบที่ “End”</div>
+      <div id="msg"></div>
+      <button class="go" id="next" hidden style="margin-top:10px">ด่านถัดไป ▶</button>
     </div>
     <div class="card" style="margin-top:14px">
       <h2>ลำดับคำสั่งที่ทำงานจริง</h2>
@@ -79,24 +95,48 @@ ol#log{margin:6px 0 0;padding-left:22px;font-size:13px;color:var(--mut);max-heig
     </div>
   </section>
 </main>
+<div id="pin" hidden><div class="dlg" role="dialog" aria-modal="true" aria-label="ใส่รหัสครู"><h3 id="pth">🔒</h3><p id="ptx"></p><input id="pv" type="password" inputmode="numeric" maxlength="8" autocomplete="off"><div id="pe"></div><div class="row"><button id="pc">ยกเลิก</button><button class="go" id="pk">ตกลง</button></div></div></div>
+
 <script>
 const $=id=>document.getElementById(id);
 const fc=$('fc'),sc=$('sc');
-/* ---------- Flowchart model ---------- */
-const COL={terminal:'#6f3f86',process:'#bcd631',decision:'#7a96ff'};
-const HH={terminal:40,process:46,decision:64},PX=336;
-const P=[
- {k:'start',s:'terminal',l:'Start'},{k:'end',s:'terminal',l:'End'},
- {k:'s1L',s:'process',l:'หมุน Servo1\nไปทางซ้าย',v:1},{k:'s1R',s:'process',l:'หมุน Servo1\nไปทางขวา',v:1},
- {k:'s2Up',s:'process',l:'หมุน Servo2\nขึ้น',v:2},{k:'s2Down',s:'process',l:'หมุน Servo2\nลง',v:2},
- {k:'s2Fwd',s:'process',l:'หมุน Servo2\nไปข้างหน้า',v:2},{k:'s5Down',s:'process',l:'หมุน Servo5\nลงเล็กน้อย',v:5},
- {k:'grip',s:'process',l:'ควบคุม Servo6\nเพื่อหยิบกล่อง',v:6},{k:'release',s:'process',l:'ควบคุม Servo6\nเพื่อเปิดและวางกล่อง',v:6},
- {k:'dA',s:'decision',l:'หมุนถึง\nจุด A'},{k:'dG',s:'decision',l:'หมุนถึง\nกล่องสีเขียว'},
- {k:'dB',s:'decision',l:'หมุนถึง\nจุด B'},{k:'stop',s:'process',l:'หยุดหมุน',v:1}
+/* ---------- Block kinds ---------- */
+const KD={
+ start:{s:'terminal',l:'Start'},end:{s:'terminal',l:'End'},
+ s1L:{s:'process',l:'หมุน Servo1\nไปทางซ้าย',v:1},s1R:{s:'process',l:'หมุน Servo1\nไปทางขวา',v:1},
+ s2Up:{s:'process',l:'หมุน Servo2\nยกขึ้น',v:2},s2Dn:{s:'process',l:'หมุน Servo2\nก้มลง',v:2},
+ s3Ext:{s:'process',l:'หมุน Servo3\nยืดแขน',v:3},s3Fold:{s:'process',l:'หมุน Servo3\nพับแขน',v:3},
+ s4Dn:{s:'process',l:'หมุน Servo4\nลงเล็กน้อย',v:4},s4Up:{s:'process',l:'หมุน Servo4\nเงยขึ้น',v:4},
+ s5Grip:{s:'process',l:'ควบคุม Servo5\nเพื่อหนีบกล่อง',v:5},s5Open:{s:'process',l:'ควบคุม Servo5\nเพื่อเปิดมือจับ',v:5},
+ stop:{s:'process',l:'หยุดหมุน',v:1},
+ dT:{s:'decision',l:'หมุนถึง\nเป้าหมาย?'},dA:{s:'decision',l:'หมุนถึง\nจุด A?'},dG:{s:'decision',l:'หมุนถึง\nกล่องสีเขียว?'},dB:{s:'decision',l:'หมุนถึง\nจุด B?'}
+};
+const COL={terminal:'#6f3f86',process:'#bcd631',decision:'#7a96ff'},HH={terminal:40,process:46,decision:64},PX=336;
+const A_=-56,G_=48,B_=96,T1=48;
+/* ---------- Levels ---------- */
+const LV=[
+{t:'ด่าน 1 · หมุนฐาน (Servo1)',m:'สั่ง Servo1 หมุนฐานไปทางขวา จนปลายแขนอยู่เหนือดาว ⭐ แล้วจบโปรแกรม',
+ h:'Servo1 หมุนทีละ 8° — ใช้ Decision “หมุนถึงเป้าหมาย?” ถ้า “ไม่” ให้วนกลับไปหมุนอีก ถ้า “ใช่” ไปต่อที่ End',
+ pal:['start','end','s1R','s1L','dT'],boxes:[],mk:'star',
+ sol:()=>[[['start',560,70],['s1R',560,170],['dT',560,290],['end',560,420]],[[0,'out',1],[1,'out',2],[2,'yes',3],[2,'no',1]]]},
+{t:'ด่าน 2 · หยิบกล่อง (Servo2–5)',m:'สั่งแขนกลให้เอื้อมไปหนีบกล่องสีแดงที่อยู่ข้างหน้า แล้วยกกล่องขึ้นจากพื้น',
+ h:'ลำดับ: ยืดแขน (Servo3) → ก้มลง (Servo2) → ลงเล็กน้อย (Servo4) → หนีบ (Servo5) → ยกขึ้น (Servo2) · ระวัง: หนีบไม่ได้ถ้ามือจับยังไม่ถึงกล่อง',
+ pal:['start','end','s2Up','s2Dn','s3Ext','s3Fold','s4Dn','s4Up','s5Grip','s5Open'],boxes:['red'],mk:'',
+ sol:()=>[['start','s3Ext','s2Dn','s4Dn','s5Grip','s2Up','end'].map((k,i)=>[k,660,62+i*100]),[0,1,2,3,4,5].map(i=>[i,'out',i+1])]},
+{t:'ด่าน 3 · โจทย์จริง',m:'Design a flowchart to control a robotic arm so that it picks up the red box and places it at point A on the left side, then picks up the green box and places it at point B on the right side.',
+ h:'หยิบกล่องแดง → หมุนซ้ายจนถึงจุด A → วาง → หมุนขวาจนถึงกล่องเขียว → หยิบ → หมุนขวาจนถึงจุด B → วาง · ก่อนหมุน Servo1 ต้องยกแขนขึ้นก่อน',
+ pal:['start','end','s1L','s1R','s2Up','s2Dn','s3Ext','s3Fold','s4Dn','s4Up','s5Grip','s5Open','stop','dA','dG','dB'],boxes:['red','green'],mk:'AB',
+ sol:()=>{const ks=['start','s3Ext','s2Dn','s4Dn','s5Grip','s2Up','s1L','dA','stop','s2Dn','s5Open','s2Up','s1R','dG','stop','s2Dn','s5Grip','s2Up','s1R','dB','stop','s2Dn','s5Open','end'];
+  const nd=ks.map((k,i)=>[k,440+Math.floor(i/8)*200,60+(i%8)*88]),ed=[];
+  ks.forEach((k,i)=>{if(i<ks.length-1)ed.push([i,KD[k].s==='decision'?'yes':'out',i+1])});
+  ed.push([7,'no',6],[13,'no',12],[19,'no',18]);return[nd,ed]}}
 ];
+let lvl=0,store=[],passed=[false,false,false];
+try{const p=JSON.parse(localStorage.getItem('rbfc_passed')||'[]');p.forEach((v,i)=>{if(i<3)passed[i]=!!v})}catch(e){}
+/* ---------- Flowchart model ---------- */
 let nodes=[],edges=[],nid=1,hl=null,hlBad=false,drag=null,conn=null,running=false,runId=0,actSv=0;
 const N=id=>nodes.find(n=>n.id===id);
-const mkNode=(p,x,y)=>({id:nid++,k:p.k,s:p.s,l:p.l,x,y,w:p.s==='decision'?160:150,h:HH[p.s]});
+const mkNode=(k,x,y)=>{const d=KD[k];return{id:nid++,k,s:d.s,l:d.l,x,y,w:d.s==='decision'?160:150,h:HH[d.s]}};
 function shape(s,w,h,fill){
   if(s==='terminal')return `<rect class="sh" x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="${h/2}" fill="${fill}"/>`;
   if(s==='process')return `<rect class="sh" x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="3" fill="${fill}"/>`;
@@ -108,10 +148,10 @@ function nodeSvg(n,pal){
   let ports='';
   if(!pal){
     if(n.k!=='start')ports+=`<circle class="inp" cy="${-n.h/2}" r="4"/>`;
-    if(n.s==='decision')ports+=`<circle class="port" data-port="yes" cy="${n.h/2}" r="7"/><circle class="port" data-port="no" cx="${n.w/2}" r="7"/><text class="lbl" x="12" y="${n.h/2+16}">ใช่</text><text class="lbl" x="${n.w/2+10}" y="-9">ไม่</text>`;
-    else if(n.k!=='end')ports+=`<circle class="port" data-port="out" cy="${n.h/2}" r="7"/>`;
+    if(n.s==='decision')ports+=`<circle data-port="yes" cy="${n.h/2}" r="17" fill="transparent"/><circle class="port" data-port="yes" cy="${n.h/2}" r="9"/><circle data-port="no" cx="${n.w/2}" r="17" fill="transparent"/><circle class="port" data-port="no" cx="${n.w/2}" r="9"/><text class="lbl" x="12" y="${n.h/2+16}">ใช่</text><text class="lbl" x="${n.w/2+10}" y="-9">ไม่</text>`;
+    else if(n.k!=='end')ports+=`<circle data-port="out" cy="${n.h/2}" r="17" fill="transparent"/><circle class="port" data-port="out" cy="${n.h/2}" r="9"/>`;
   }
-  const cls=(pal?'pal':'node')+(n.id===hl?(hlBad?' bad':' run'):'');
+  const cls=(pal?'pal':'node')+(n.id===hl?(hlBad?' bad':' run'):'')+(conn&&conn.t===n.id?' tgt':'');
   return `<g class="${cls}" ${pal?`data-pal="${n.k}"`:`data-id="${n.id}"`} transform="translate(${n.x} ${n.y})">${shape(n.s,n.w,n.h,COL[n.s])}<text class="nt" fill="${tc}">${tx}</text>${ports}</g>`;
 }
 function route(e,a,b){
@@ -136,7 +176,7 @@ function render(){
   let ed='';
   edges.forEach((e,i)=>{const a=N(e.from),b=N(e.to);if(!a||!b)return;const d=rp(route(e,a,b),9);
     ed+=`<path data-edge="${i}" d="${d}" stroke="transparent" stroke-width="16" fill="none" style="cursor:pointer"/><path class="ed" d="${d}" marker-end="url(#ah)"/>`});
-  let pal='';P.forEach((p,i)=>pal+=nodeSvg({...mkNode(p,85+(i%2)*162,62+Math.floor(i/2)*84),id:0},true));
+  let pal='';LV[lvl].pal.forEach((k,i)=>pal+=nodeSvg({...mkNode(k,85+(i%2)*162,62+Math.floor(i/2)*84),id:0},true));
   fc.innerHTML=`<defs><pattern id="gp" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="var(--grid)" stroke-width="1"/></pattern>
   <marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L10 4L0 8z" style="fill:var(--edge)"/></marker></defs>
   <rect x="${PX}" y="0" width="${1000-PX}" height="810" fill="url(#gp)"/>
@@ -148,15 +188,16 @@ function render(){
 }
 /* ---------- interaction ---------- */
 function pt(e){const p=fc.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(fc.getScreenCTM().inverse());return [q.x,q.y]}
+function hitNode(x,y,ex){let b=null,bd=1e9;for(const n of nodes){if(n.id===ex||n.k==='start')continue;if(Math.abs(x-n.x)<=n.w/2+14&&Math.abs(y-n.y)<=n.h/2+14){const d=Math.hypot(x-n.x,y-n.y);if(d<bd){bd=d;b=n}}}return b}
 fc.addEventListener('pointerdown',e=>{
   if(running)return;
   const t=e.target,[x,y]=pt(e);
   const port=t.closest('[data-port]'),ed=t.closest('[data-edge]'),pal=t.closest('[data-pal]'),nd=t.closest('[data-id]');
   if(port){conn={from:+nd.dataset.id,port:port.dataset.port}}
   else if(ed){edges.splice(+ed.dataset.edge,1);render();return}
-  else if(pal){const p=P.find(q=>q.k===pal.dataset.pal);
-    if(p.k==='start'&&nodes.some(n=>n.k==='start')){say('มีบล็อก Start อยู่แล้ว 1 อัน','bad');return}
-    const n=mkNode(p,x,y);nodes.push(n);drag={n,dx:0,dy:0};render()}
+  else if(pal){const k=pal.dataset.pal;
+    if(k==='start'&&nodes.some(n=>n.k==='start')){say('มีบล็อก Start อยู่แล้ว 1 อัน','bad');return}
+    const n=mkNode(k,x,y);nodes.push(n);drag={n,dx:0,dy:0};render()}
   else if(nd){const n=N(+nd.dataset.id);drag={n,dx:n.x-x,dy:n.y-y};nodes.splice(nodes.indexOf(n),1);nodes.push(n);render()}
   else return;
   fc.setPointerCapture(e.pointerId);e.preventDefault();
@@ -164,86 +205,104 @@ fc.addEventListener('pointerdown',e=>{
 fc.addEventListener('pointermove',e=>{
   const [x,y]=pt(e);
   if(drag){drag.n.x=Math.max(30,Math.min(985,x+drag.dx));drag.n.y=Math.max(25,Math.min(790,y+drag.dy));render()}
-  else if(conn){$('tmp').setAttribute('d',rp(route({port:conn.port},N(conn.from),{x,y,w:0,h:0}),9))}
+  else if(conn){const t=hitNode(x,y,conn.from);if((t?t.id:0)!==(conn.t||0)){conn.t=t?t.id:0;render()}
+    const a=N(conn.from);$('tmp').setAttribute('d',rp(route({port:conn.port},a,t||{x,y,w:0,h:0}),9))}
 });
 fc.addEventListener('pointerup',e=>{
   if(drag){const n=drag.n;if(n.x<PX){nodes=nodes.filter(m=>m!==n);edges=edges.filter(g=>g.from!==n.id&&g.to!==n.id)}
     else n.x=Math.max(PX+n.w/2+4,n.x);drag=null;render()}
-  if(conn){const el=document.elementFromPoint(e.clientX,e.clientY),tn=el&&el.closest('[data-id]');
-    if(tn){const t=N(+tn.dataset.id);
-      if(t&&t.id!==conn.from&&t.k!=='start'){edges=edges.filter(g=>!(g.from===conn.from&&g.port===conn.port));edges.push({from:conn.from,port:conn.port,to:t.id})}}
+  if(conn){const [ux,uy]=pt(e),t=hitNode(ux,uy,conn.from);
+    if(t&&t.k!=='start'){edges=edges.filter(g=>!(g.from===conn.from&&g.port===conn.port));edges.push({from:conn.from,port:conn.port,to:t.id})}
     conn=null;render()}
 });
-/* ---------- Robot scene (pseudo-3D) ---------- */
-const C=[300,330],SHZ=108,L1=112,L2=100,K=.42,A_=-56,G_=48,B_=96,rad=d=>d*Math.PI/180;
+/* ---------- Robot (5 servos) ---------- */
+const DG=Math.PI/180,C=[300,338],SHZ=108,UL=105,FL=95,GL=46,K=.42,BR=150;
+const POSE=(()=>{const w=[BR,20+GL],dx=w[0],dz=w[1]-SHZ,d=Math.hypot(dx,dz),al=Math.acos((UL*UL+d*d-FL*FL)/(2*UL*d)),a2=(Math.atan2(dx,dz)-al)/DG,e=[UL*Math.sin(a2*DG),SHZ+UL*Math.cos(a2*DG)],f=Math.atan2(w[0]-e[0],w[1]-e[1])/DG;return{a2,a3:f-a2,a4:180-f}})();
+const UP=38,FOLD=120,A4UP=-35;
 let R,boxes,holding,order;
-function resetState(){R={r:40,h:170,phi:0,g:0};boxes={red:{phi:0},green:{phi:G_}};holding=null;order=[]}
+function resetState(){R={phi:0,a2:UP,a3:FOLD,a4:A4UP,g:0,cs:22};boxes={};LV[lvl].boxes.forEach(n=>boxes[n]={phi:n==='red'?0:G_});holding=null;order=[]}
+function fkOf(q){const t1=(q.a2+q.a3)*DG,t2=(q.a2+q.a3+q.a4)*DG,e=[UL*Math.sin(q.a2*DG),SHZ+UL*Math.cos(q.a2*DG)],w=[e[0]+FL*Math.sin(t1),e[1]+FL*Math.cos(t1)],t=[w[0]+GL*Math.sin(t2),w[1]+GL*Math.cos(t2)];return{e,w,t}}
 const pj=(r,z,f)=>[C[0]+r*Math.sin(f),C[1]+K*r*Math.cos(f)-z];
-function cube(p,c1,c2,c3){return `<g transform="translate(${p[0]} ${p[1]})"><rect x="-20" y="-20" width="40" height="40" fill="${c1}" stroke="rgba(0,0,0,.45)"/><polygon points="-20,-20 -12,-28 28,-28 20,-20" fill="${c2}" stroke="rgba(0,0,0,.4)"/><polygon points="20,-20 28,-28 28,12 20,20" fill="${c3}" stroke="rgba(0,0,0,.4)"/><text y="1" text-anchor="middle" dominant-baseline="central" font-size="9" fill="#fff" font-weight="700" font-family="Sarabun,sans-serif" opacity=".9" transform="skewY(-6)">iDekTep</text></g>`}
+function cube(p,c1,c2,c3){return `<g transform="translate(${p[0]} ${p[1]})"><rect x="-20" y="-20" width="40" height="40" fill="${c1}" stroke="rgba(0,0,0,.45)"/><polygon points="-20,-20 -12,-28 28,-28 20,-20" fill="${c2}" stroke="rgba(0,0,0,.4)"/><polygon points="20,-20 28,-28 28,12 20,20" fill="${c3}" stroke="rgba(0,0,0,.4)"/><text y="1" text-anchor="middle" dominant-baseline="central" font-size="9" fill="#fff" font-weight="700" font-family="Sarabun,sans-serif" opacity=".9">iDekTep</text></g>`}
 function link(p,q,w1,w2,fill){const dx=q[0]-p[0],dy=q[1]-p[1],l=Math.hypot(dx,dy)||1,nx=-dy/l,ny=dx/l;
   return `<polygon points="${p[0]+nx*w1},${p[1]+ny*w1} ${q[0]+nx*w2},${q[1]+ny*w2} ${q[0]-nx*w2},${q[1]-ny*w2} ${p[0]-nx*w1},${p[1]-ny*w1}" fill="${fill}" stroke="rgba(0,0,0,.4)" stroke-width="1.5" stroke-linejoin="round"/>`}
 function joint(p,r,c){let s=`<circle cx="${p[0]}" cy="${p[1]}" r="${r}" fill="${c}" stroke="rgba(0,0,0,.45)" stroke-width="1.5"/>`;
-  for(let i=0;i<5;i++){const a=i*1.2566;s+=`<circle cx="${p[0]+Math.cos(a)*r*.55}" cy="${p[1]+Math.sin(a)*r*.55}" r="1.8" fill="#fff" stroke="rgba(0,0,0,.35)" stroke-width=".6"/>`}return s}
+  for(let i=0;i<5;i++){const a=i*1.2566;s+=`<circle cx="${p[0]+Math.cos(a)*r*.55}" cy="${p[1]+Math.sin(a)*r*.55}" r="1.7" fill="#fff" stroke="rgba(0,0,0,.35)" stroke-width=".6"/>`}return s}
+function srv(p,q,w,l){const a=Math.atan2(q[1]-p[1],q[0]-p[0])/DG;return `<rect x="${-l/2}" y="${-w/2}" width="${l}" height="${w}" rx="3" transform="translate(${p[0]} ${p[1]}) rotate(${a})" fill="#2b2b2f" stroke="#000" stroke-width="1.3"/>`}
 function badge(p,n){const on=actSv===n;return `<g transform="translate(${p[0]} ${p[1]})"><circle r="9" fill="${on?'#ff7a00':'#555'}" stroke="#fff" stroke-width="1.5"/><text y="1" text-anchor="middle" dominant-baseline="central" font-size="10" font-weight="700" fill="#fff" font-family="Sarabun,sans-serif">S${n}</text></g>`}
-function marker(phi,l,c){const p=pj(150,0,rad(phi));return `<ellipse cx="${p[0]}" cy="${p[1]}" rx="34" ry="14" fill="none" stroke="${c}" stroke-width="2" stroke-dasharray="5 4"/><circle cx="${p[0]}" cy="${p[1]+27}" r="11" fill="${c}"/><text x="${p[0]}" y="${p[1]+28}" text-anchor="middle" dominant-baseline="central" fill="#fff" font-weight="700" font-size="14" font-family="Sarabun,sans-serif">${l}</text>`}
+function marker(phi,txt,c){const p=pj(BR,0,phi*DG);return `<ellipse cx="${p[0]}" cy="${p[1]}" rx="34" ry="14" fill="none" stroke="${c}" stroke-width="2" stroke-dasharray="5 4"/><text x="${p[0]}" y="${p[1]+(txt==='⭐'?6:34)}" text-anchor="middle" font-size="${txt==='⭐'?24:30}" font-weight="700" font-family="Sarabun,sans-serif" style="fill:var(--ink)">${txt}</text>`}
 function draw(){
-  const f=rad(R.phi),Wz=R.h+52,dz=Wz-SHZ,d=Math.max(20,Math.min(L1+L2-1,Math.hypot(R.r,dz))),a=Math.atan2(dz,R.r),th=Math.acos((L1*L1+d*d-L2*L2)/(2*L1*d));
-  const S0=pj(0,SHZ,f),E=pj(L1*Math.cos(a+th),SHZ+L1*Math.sin(a+th),f),W=pj(R.r,Wz,f),sp=32-10*R.g;
-  const bx=['red','green'].map(n=>{const h=holding===n,p=h?pj(R.r,R.h+20,f):pj(150,20,rad(boxes[n].phi));return {n,p,dep:h?R.r*Math.cos(f):150*Math.cos(rad(boxes[n].phi))}}).sort((u,v)=>u.dep-v.dep);
-  const gp=pj(R.r,0,f),servoFront=Math.sin(f)>0,sv=`<rect x="${C[0]-40*Math.cos(f)-13}" y="${C[1]+K*40*Math.sin(f)-92}" width="26" height="44" rx="3" fill="#2b2b2f" stroke="#000" stroke-width="1.5"/>`;
+  const f=R.phi*DG,P=fkOf(R),S0=pj(0,SHZ,f),E=pj(P.e[0],P.e[1],f),W=pj(P.w[0],P.w[1],f),T=pj(P.t[0],P.t[1],f);
+  const bx=Object.keys(boxes).map(n=>{const h=holding===n,p=h?T:pj(BR,20,boxes[n].phi*DG);return{n,p,dep:h?-9:BR*Math.cos(boxes[n].phi*DG)}}).sort((u,v)=>u.dep-v.dep);
+  const gp=pj(P.t[0],0,f),sFront=Math.sin(f)>0,sv=`<rect x="${C[0]-40*Math.cos(f)-13}" y="${C[1]+K*40*Math.sin(f)-92}" width="26" height="44" rx="3" fill="#2b2b2f" stroke="#000" stroke-width="1.5"/>`;
+  const sp=32+(R.cs-32)*R.g,wl=Math.hypot(T[0]-W[0],T[1]-W[1]),ang=Math.atan2(T[1]-W[1],T[0]-W[0])/DG-90,ss=Math.max(.5,wl/GL);
+  const mk=LV[lvl].mk;
   sc.innerHTML=`<defs><linearGradient id="gT" x1="0" x2="1"><stop offset="0" stop-color="#34a9a5"/><stop offset=".45" stop-color="#72e3df"/><stop offset="1" stop-color="#2f9c98"/></linearGradient><linearGradient id="gY" x1="0" x2="1"><stop offset="0" stop-color="#d9b90f"/><stop offset=".5" stop-color="#f7de45"/><stop offset="1" stop-color="#cfae0d"/></linearGradient></defs>
-  <ellipse cx="300" cy="345" rx="292" ry="100" style="fill:var(--floor)"/>
-  ${marker(A_,'A','#c0392b')}${marker(B_,'B','#3f8a1c')}
+  <ellipse cx="300" cy="352" rx="292" ry="100" style="fill:var(--floor)"/>
+  ${mk==='star'?marker(T1,'⭐','#e6a700'):''}${mk==='AB'?marker(A_,'A','#c0392b')+marker(B_,'B','#3f8a1c'):''}
   <ellipse cx="${gp[0]}" cy="${gp[1]}" rx="26" ry="10" fill="rgba(0,0,0,.18)"/>
   ${bx.map(b=>b.n==='red'?cube(b.p,'#e53935','#f08a86','#b02623'):cube(b.p,'#43a047','#86cc8a','#2c7a30')).join('')}
   <ellipse cx="${C[0]}" cy="${C[1]+6}" rx="86" ry="33" fill="rgba(0,0,0,.2)"/>
   <ellipse cx="${C[0]}" cy="${C[1]}" rx="80" ry="31" fill="#bfa10c" stroke="rgba(0,0,0,.4)"/>
   <polygon points="${C[0]-80},${C[1]} ${C[0]-50},${C[1]-30} ${C[0]+50},${C[1]-30} ${C[0]+80},${C[1]}" fill="url(#gY)" stroke="rgba(0,0,0,.35)"/>
-  <ellipse cx="${C[0]}" cy="${C[1]}" rx="80" ry="31" fill="url(#gY)" clip-path="inset(50% 0 0 0)"/>
   <ellipse cx="${C[0]-34}" cy="${C[1]-12}" rx="16" ry="7" fill="#2b2b2f"/><ellipse cx="${C[0]+34}" cy="${C[1]-12}" rx="16" ry="7" fill="#2b2b2f"/>
   <ellipse cx="${C[0]}" cy="${C[1]-30}" rx="50" ry="17" fill="#f7de45" stroke="rgba(0,0,0,.35)"/>
   <ellipse cx="${C[0]}" cy="${C[1]-36}" rx="46" ry="15" fill="#4fc9c6" stroke="rgba(0,0,0,.4)"/>
-  ${servoFront?'':sv}
+  ${sFront?'':sv}
   <rect x="${C[0]-28}" y="${C[1]-112}" width="56" height="76" fill="url(#gT)" stroke="rgba(0,0,0,.4)"/>
   <ellipse cx="${C[0]}" cy="${C[1]-36}" rx="28" ry="10" fill="#3aa8a4" stroke="rgba(0,0,0,.35)"/>
   <ellipse cx="${C[0]}" cy="${C[1]-112}" rx="28" ry="10" fill="#8ff0ec" stroke="rgba(0,0,0,.4)"/>
   ${[[-14,-62],[14,-62],[0,-86]].map(q=>`<circle cx="${C[0]+q[0]}" cy="${C[1]+q[1]}" r="3" fill="#fff" stroke="rgba(0,0,0,.4)" stroke-width=".8"/>`).join('')}
-  ${servoFront?sv:''}
-  ${link(S0,E,13,10,'#f0a77d')}${link(E,W,11,12,'#f6f6f6')}
-  ${joint(S0,15,'#4fc9c6')}${joint(E,12,'#4fc9c6')}
-  <g transform="translate(${W[0]} ${W[1]})"><rect x="-17" y="-14" width="34" height="24" rx="4" fill="#eaeaea" stroke="rgba(0,0,0,.45)" stroke-width="1.5"/><text y="-2" text-anchor="middle" dominant-baseline="central" font-size="8" fill="#555" font-weight="700" font-family="Sarabun,sans-serif">SERVO</text>
-  <rect x="-34" y="9" width="68" height="7" rx="2" fill="#6c6c70" stroke="#000" stroke-opacity=".5"/>
-  <g fill="#8d8d92" stroke="rgba(0,0,0,.55)" stroke-width="1.3"><polygon points="${-sp-4},16 ${-sp+4},16 ${-sp+4},44 ${-sp+1},48 ${-sp-4},44"/><polygon points="${sp-4},16 ${sp+4},16 ${sp+4},44 ${sp},48 ${sp-4},44"/></g></g>
-  ${badge([C[0]+88,C[1]-46],1)}${badge([S0[0]+22,S0[1]-22],2)}${badge([E[0]+18,E[1]-20],5)}${badge([W[0]+30,W[1]-12],6)}
+  ${sFront?sv:''}
+  ${link(S0,E,13,10,'#f0a77d')}${srv(E,S0,18,30)}${link(E,W,11,9,'#f6f6f6')}${srv(W,E,14,24)}
+  ${joint(S0,15,'#4fc9c6')}${joint(E,11,'#4fc9c6')}${joint(W,8,'#4fc9c6')}
+  <g transform="translate(${W[0]} ${W[1]}) rotate(${ang}) scale(1 ${ss})"><rect x="-15" y="-4" width="30" height="20" rx="4" fill="#ececec" stroke="rgba(0,0,0,.5)" stroke-width="1.4"/><text y="7" text-anchor="middle" dominant-baseline="central" font-size="6.5" fill="#555" font-weight="700" font-family="Sarabun,sans-serif">GRIPPER</text>
+  <rect x="-34" y="15" width="68" height="6" rx="2" fill="#6c6c70" stroke="#000" stroke-opacity=".5"/>
+  <g fill="#8d8d92" stroke="rgba(0,0,0,.55)" stroke-width="1.3"><polygon points="${-sp-4},21 ${-sp+3},21 ${-sp+3},${GL+4} ${-sp+7},${GL+8} ${-sp-4},${GL+8}"/><polygon points="${sp-3},21 ${sp+4},21 ${sp+4},${GL+8} ${sp-7},${GL+8} ${sp-3},${GL+4}"/></g></g>
+  ${badge([C[0]+92,C[1]-46],1)}${badge([S0[0]+22,S0[1]-26],2)}${badge([E[0]+18,E[1]-22],3)}${badge([W[0]+20,W[1]-20],4)}${badge([T[0]+36,T[1]-6],5)}
   <text x="14" y="26" font-size="13" font-weight="700" font-family="Sarabun,sans-serif" style="fill:var(--mut)">Servo1 = ${R.phi.toFixed(0)}°</text>`;
 }
 const spd=()=>+$('spd').value,sleep=ms=>new Promise(r=>setTimeout(r,ms*spd()));
 function to(o,D,id){const s={...R};return new Promise(res=>{const t0=performance.now();(function st(now){if(id!==runId)return res();const t=Math.min(1,(now-t0)/(D*spd())),k=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;for(const q in o)R[q]=s[q]+(o[q]-s[q])*k;draw();t<1?requestAnimationFrame(st):res()})(t0)})}
 function say(t,c){const m=$('msg');m.textContent=t;m.className=c||''}
 function li(t){const o=document.createElement('li');o.textContent=t.replace('\n',' ');$('log').appendChild(o);o.scrollIntoView({block:'nearest'})}
-function resetScene(){runId++;running=false;hl=null;hlBad=false;actSv=0;resetState();$('log').innerHTML='';say('ลากบล็อกมาต่อกันเป็นผังงาน เริ่มจาก “Start” และจบที่ “End”');render();draw()}
+function resetScene(){runId++;running=false;hl=null;hlBad=false;actSv=0;resetState();$('log').innerHTML='';$('next').hidden=true;say('ลากบล็อกมาต่อกันเป็นผังงาน เริ่มจาก “Start” และจบที่ “End”');render();draw()}
 /* ---------- Execute ---------- */
+async function arm(o,D,id){const q={...R,...o};if(fkOf(q).t[1]<8)return 'ปลายแขนชนพื้น! ท่านี้แขนกลต่ำเกินไป';await to(o,D,id)}
 async function act(n,id){
   const k=n.k;
-  if(k==='s2Fwd'){await to({r:150,h:60},1000,id);return}
-  if(k==='s5Down'||k==='s2Down'){if(R.r<100)return 'ยังไม่ได้ยื่นแขนไปข้างหน้า (หมุน Servo2 ไปข้างหน้า) แขนจึงลดลงไม่ถึงกล่อง';await to({h:0},750,id);return}
-  if(k==='s2Up'){await to({h:110},750,id);return}
   if(k==='s1L'||k==='s1R'){
-    if(R.h<45)return 'แขนกลชนกล่องขณะหมุน! ต้องยกแขนขึ้น (หมุน Servo2 ขึ้น) ก่อนหมุน Servo1';
+    if(fkOf(R).t[1]<40)return 'แขนกลชนกล่องขณะหมุน! ต้องยกแขนขึ้น (Servo2 ยกขึ้น) ก่อนหมุน Servo1';
     const p=R.phi+(k==='s1L'?-8:8);if(Math.abs(p)>170)return 'Servo1 หมุนเกินขีดจำกัด';
     await to({phi:p},260,id);return}
+  if(k==='s2Up')return arm({a2:UP},800,id);
+  if(k==='s2Dn')return arm({a2:POSE.a2},800,id);
+  if(k==='s3Ext')return arm({a3:POSE.a3},800,id);
+  if(k==='s3Fold')return arm({a3:FOLD},800,id);
+  if(k==='s4Dn')return arm({a4:POSE.a4},600,id);
+  if(k==='s4Up')return arm({a4:A4UP},600,id);
   if(k==='stop'){await sleep(500);return}
-  if(k==='grip'){
-    if(holding)return 'แขนกลถือกล่องอยู่แล้ว';
-    const b=Object.keys(boxes).find(c=>Math.abs(boxes[c].phi-R.phi)<4);
-    if(R.r<100||R.h>3||!b){await to({g:1},350,id);await to({g:0},350,id);return 'คีบไม่ได้: มือจับต้องอยู่ที่กล่องและลดแขนลงถึงพื้นก่อน'}
-    await to({g:1},350,id);holding=b;order.push(b);return}
-  if(k==='release'){
-    if(!holding)return 'ไม่มีกล่องให้วาง: ต้องคีบกล่องก่อน';
-    if(R.h>3)return 'วางกล่องกลางอากาศ! ต้องลดแขนลง (หมุน Servo2 ลง) ให้ถึงพื้นก่อน';
+  if(k==='s5Grip'){
+    if(holding)return 'มือจับถือกล่องอยู่แล้ว';
+    const t=fkOf(R).t,b=Object.keys(boxes).find(c=>Math.abs(boxes[c].phi-R.phi)<4&&Math.abs(t[0]-BR)<16&&t[1]<=32);
+    R.cs=b?22:13;await to({g:1},350,id);
+    if(!b){await to({g:0},350,id);return 'หนีบไม่โดนกล่อง: ปลายมือจับต้องอยู่ที่กล่อง (ลองยืดแขน Servo3 → ก้มลง Servo2 → ลงเล็กน้อย Servo4)'}
+    holding=b;order.push(b);return}
+  if(k==='s5Open'){
+    if(!holding){await to({g:0},350,id);return}
+    if(fkOf(R).t[1]>32)return 'วางกล่องกลางอากาศ! ต้องก้มแขนลงให้ถึงพื้นก่อน';
     boxes[holding].phi=R.phi;holding=null;await to({g:0},350,id)}
 }
-const cond={dA:()=>Math.abs(R.phi-A_)<4,dG:()=>Math.abs(R.phi-boxes.green.phi)<4,dB:()=>Math.abs(R.phi-B_)<4};
+const cond={dT:()=>Math.abs(R.phi-T1)<4,dA:()=>Math.abs(R.phi-A_)<4,dG:()=>!!boxes.green&&Math.abs(R.phi-boxes.green.phi)<4,dB:()=>Math.abs(R.phi-B_)<4};
+function evalEnd(){
+  if(lvl===0)return Math.abs(R.phi-T1)<4?[1,'ปลายแขนอยู่เหนือดาวแล้ว']:[0,'ยังไม่ถึงดาว ⭐ — ผังจบก่อนที่ Servo1 จะหมุนถึงเป้าหมาย'];
+  if(lvl===1){const z=fkOf(R).t[1];if(holding==='red'&&z>=60)return[1,'หนีบกล่องสีแดงและยกขึ้นจากพื้นสำเร็จ'];
+    return[0,holding==='red'?'หนีบกล่องแล้ว แต่ยังไม่ได้ยกขึ้น — ใช้ Servo2 ยกขึ้นก่อนจบ':'ผังจบแล้ว แต่ยังไม่ได้หนีบกล่องสีแดง']}
+  const okR=Math.abs(boxes.red.phi-A_)<4,okG=Math.abs(boxes.green.phi-B_)<4;
+  if(okR&&okG&&!holding&&order[0]==='red'&&order[1]==='green')return[1,'กล่องแดงอยู่ที่จุด A และกล่องเขียวอยู่ที่จุด B ตามลำดับที่โจทย์กำหนด'];
+  if(okR&&okG)return[0,'กล่องอยู่ถูกที่แล้ว แต่ลำดับไม่ตรงโจทย์ — ต้องหยิบกล่องสีแดงก่อน'];
+  return[0,'ผังงานทำงานถึง End แล้ว แต่ยังไม่ตรงโจทย์: '+(okR?'':'กล่องแดงไม่ได้อยู่ที่จุด A ')+(okG?'':'กล่องเขียวไม่ได้อยู่ที่จุด B')];
+}
 async function run(){
   if(running)return;resetScene();
   const id=runId,st=nodes.filter(n=>n.k==='start');
@@ -252,12 +311,12 @@ async function run(){
   const fail=(t,n)=>{hl=n.id;hlBad=true;actSv=0;render();draw();say('❌ '+t,'bad');running=false};
   while(cur){
     if(id!==runId)return;
-    hl=cur.id;hlBad=false;actSv=(P.find(p=>p.k===cur.k)||{}).v||0;render();draw();
-    if(++steps>160){fail('ทำงานวนซ้ำนานเกินไป ตรวจสอบเส้นลูกศรและเงื่อนไขอีกครั้ง',cur);return}
+    hl=cur.id;hlBad=false;actSv=KD[cur.k].v||0;render();draw();
+    if(++steps>200){fail('ทำงานวนซ้ำนานเกินไป ตรวจสอบเส้นลูกศรและเงื่อนไขอีกครั้ง',cur);return}
     li(cur.l);
     let port='out';
     if(cur.k==='end'){await sleep(400);reached=true;break}
-    if(cur.s==='decision'){const ok=cond[cur.k]();port=ok?'yes':'no';say('🔷 '+cur.l.replace('\n','')+'? → '+(ok?'ใช่':'ไม่')+'  (Servo1 = '+R.phi+'°)');await sleep(280)}
+    if(cur.s==='decision'){const ok=cond[cur.k]();port=ok?'yes':'no';say('🔷 '+cur.l.replace('\n','')+' → '+(ok?'ใช่':'ไม่')+'  (Servo1 = '+R.phi.toFixed(0)+'°)');await sleep(280)}
     else if(cur.k!=='start'){const r=await act(cur,id);if(id!==runId)return;if(r){fail(r,cur);return}}
     else await sleep(400);
     const e=edges.find(g=>g.from===cur.id&&g.port===port);
@@ -266,24 +325,33 @@ async function run(){
   }
   hl=null;actSv=0;render();draw();running=false;
   if(!reached)return;
-  const okR=Math.abs(boxes.red.phi-A_)<4,okG=Math.abs(boxes.green.phi-B_)<4;
-  if(okR&&okG&&!holding&&order[0]==='red'&&order[1]==='green')say('🎉 ภารกิจสำเร็จ! กล่องแดงอยู่ที่จุด A และกล่องเขียวอยู่ที่จุด B ตามลำดับที่โจทย์กำหนด (ผังนี้ใช้ '+nodes.length+' บล็อก)','ok');
-  else if(okR&&okG)say('กล่องอยู่ถูกที่แล้ว แต่ลำดับไม่ตรงโจทย์ — ต้องหยิบกล่องสีแดงก่อน แล้วค่อยหยิบกล่องสีเขียว','bad');
-  else say('ผังงานทำงานถึง End แล้ว แต่ยังไม่ตรงโจทย์: '+(okR?'':'กล่องแดงไม่ได้อยู่ที่จุด A ')+(okG?'':'กล่องเขียวไม่ได้อยู่ที่จุด B'),'bad');
+  const [ok,msg]=evalEnd();
+  if(ok){passed[lvl]=true;try{localStorage.setItem('rbfc_passed',JSON.stringify(passed))}catch(e){}
+    say('🎉 ผ่านด่านแล้ว! '+msg+' (ผังนี้ใช้ '+nodes.length+' บล็อก)','ok');tabs();$('next').hidden=lvl>=2;if(lvl>=2)say('🏆 ผ่านครบทุกด่าน! '+msg+' (ผังนี้ใช้ '+nodes.length+' บล็อก)','ok')}
+  else say(msg,'bad');
 }
-function solution(){
-  resetScene();nodes=[];edges=[];
-  const cols=[['start','s2Fwd','s5Down','grip','s2Up','s1L','dA'],['stop','s2Down','release','s2Up','s1R','dG','stop','s2Down','grip'],['s2Up','s1R','dB','stop','s2Down','release','end']];
-  const seq=[];
-  cols.forEach((c,ci)=>c.forEach((k,i)=>{const n=mkNode(P.find(p=>p.k===k),440+ci*200,62+i*86);nodes.push(n);seq.push(n)}));
-  for(let i=0;i<seq.length-1;i++)edges.push({from:seq[i].id,port:seq[i].s==='decision'?'yes':'out',to:seq[i+1].id});
-  [[6,5],[12,11],[18,17]].forEach(([d,t])=>edges.push({from:seq[d].id,port:'no',to:seq[t].id}));
-  render();say('นี่คือตัวอย่างเฉลย — กด “เริ่มทำงาน” เพื่อดูแขนกลทำงาน');
-}
+function build(def){const[nd,ed]=def();nodes=[];edges=[];const ns=nd.map(([k,x,y])=>{const n=mkNode(k,x,y);nodes.push(n);return n});ed.forEach(([a,p,b])=>edges.push({from:ns[a].id,port:p,to:ns[b].id}))}
+function solution(){resetScene();build(LV[lvl].sol);render();say('นี่คือตัวอย่างเฉลย — กด “เริ่มทำงาน” เพื่อดูแขนกลทำงาน')}
+/* ---------- Levels UI ---------- */
+function unlocked(i){return i===0||passed[i-1]||unl[i]}
+const unl=[true,false,false];
+function tabs(){$('tabs').innerHTML=LV.map((l,i)=>`<button data-lv="${i}" class="${i===lvl?'on':''}" ${unlocked(i)?'':'data-lock="1"'}>${unlocked(i)?(passed[i]?'✅ ':''):'🔒 '}ด่าน ${i+1}</button>`).join('')}
+function setLevel(i){store[lvl]={nodes,edges,nid};lvl=i;const s=store[i]||{nodes:[],edges:[],nid:1};nodes=s.nodes;edges=s.edges;nid=s.nid;
+  $('mt').textContent=LV[i].t;$('mx').textContent=LV[i].m;$('hn').textContent='💡 '+LV[i].h;tabs();resetScene()}
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||running)return;const i=+b.dataset.lv;
+  if(b.dataset.lock){askPin('unlock',i)}else if(i!==lvl)setLevel(i)});
+$('next').onclick=()=>setLevel(lvl+1);
+/* ---------- Teacher PIN ---------- */
+const pin=$('pin'),pv=$('pv');let pmode=null;
+function askPin(type,i){pmode={type,i};$('pth').textContent=type==='sol'?'🔒 เฉลย':'🔒 ปลดล็อกด่าน '+(i+1);$('ptx').textContent=type==='sol'?'ใส่รหัสเพื่อดูเฉลย':'ใส่รหัสครูเพื่อข้ามไปด่านนี้';pv.value='';$('pe').textContent='';pin.hidden=false;pv.focus()}
+function okPin(){if(pv.value==='1234'){pin.hidden=true;if(pmode.type==='sol')solution();else{unl[pmode.i]=true;setLevel(pmode.i)}}else{$('pe').textContent='รหัสไม่ถูกต้อง ลองอีกครั้ง';pv.value='';pv.focus()}}
+$('sol').onclick=()=>askPin('sol');$('pk').onclick=okPin;$('pc').onclick=()=>{pin.hidden=true};
+pv.addEventListener('keydown',e=>{if(e.key==='Enter')okPin();if(e.key==='Escape')pin.hidden=true});
 $('run').onclick=run;$('reset').onclick=resetScene;
 $('clear').onclick=()=>{nodes=[];edges=[];resetScene()};
-$('sol').onclick=solution;
-resetState();render();draw();
+$('mt').textContent=LV[0].t;$('mx').textContent=LV[0].m;$('hn').textContent='💡 '+LV[0].h;
+tabs();resetScene();
+
 </script>
 </body>
 </html>
