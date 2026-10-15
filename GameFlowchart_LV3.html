@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เกม Flowchart ควบคุมแขนกล</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f1f7;--card:#fff;--ink:#241b33;--mut:#6b6280;--line:#ddd6ea;--acc:#6f3f86;--grid:#e9e4f1;--pal:#f7f4fb;--edge:#4a3f5e;--sc:#f4f7fb;--floor:#dcd6e8;--okbg:#e3f5ea;--okc:#1d6b3f;--badbg:#fdeaea;--badc:#a32a2a;--infobg:#f0ebf7;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15101d;--card:#1f1830;--ink:#efeaf7;--mut:#a79cbd;--line:#352b4a;--acc:#c79be0;--grid:#2a2140;--pal:#251d38;--edge:#c9bfdc;--sc:#222b3d;--floor:#3a3052;--okbg:#17382a;--okc:#8fe0b0;--badbg:#3d1c1f;--badc:#ff9d9d;--infobg:#2a2140}}
+:root[data-theme="dark"]{--bg:#15101d;--card:#1f1830;--ink:#efeaf7;--mut:#a79cbd;--line:#352b4a;--acc:#c79be0;--grid:#2a2140;--pal:#251d38;--edge:#c9bfdc;--sc:#222b3d;--floor:#3a3052;--okbg:#17382a;--okc:#8fe0b0;--badbg:#3d1c1f;--badc:#ff9d9d;--infobg:#2a2140}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:'Sarabun',system-ui,'Noto Sans Thai',sans-serif;font-size:15px}
+header{background:linear-gradient(90deg,#33193f,#6f3f86);color:#fff;padding:14px 20px}
+h1{margin:0;font-size:21px}
+header p{margin:3px 0 0;font-size:13px;opacity:.85}
+main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px;padding:14px;max-width:1500px;margin:0 auto;align-items:start}
+@media(max-width:960px){main{grid-template-columns:1fr}}
+.side{position:sticky;top:10px}
+@media(max-width:960px){.side{position:static}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.card h2{margin:0 0 8px;font-size:14px;color:var(--acc)}
+.mission{background:var(--infobg);border-left:4px solid var(--acc);padding:10px 12px;border-radius:8px;font-size:14px;line-height:1.5;margin-bottom:10px}
+.mission b.r{color:#c0392b}.mission b.g{color:#3f8a1c}
+.mission small{display:block;color:var(--mut);margin-top:4px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center}
+button,select{font:inherit;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--acc)}
+button.go{background:#2e8b57;border-color:#2e8b57;color:#fff;font-weight:700}
+#fc{width:100%;height:auto;display:block;touch-action:none;user-select:none;background:var(--card);border:1px solid var(--line);border-radius:10px}
+#sc{width:100%;height:auto;display:block;background:var(--sc);border-radius:10px;border:1px solid var(--line)}
+.ed{stroke:var(--edge);stroke-width:2;fill:none;stroke-linejoin:round}
+.sh{stroke:rgba(0,0,0,.45);stroke-width:1.4}
+.nt{font-size:13.5px;font-weight:600;text-anchor:middle;dominant-baseline:central;pointer-events:none;font-family:'Sarabun',sans-serif}
+.node{cursor:grab}.pal{cursor:copy}
+.node.run .sh{stroke:#ff7a00;stroke-width:4}
+.node.bad .sh{stroke:#e02d2d;stroke-width:4}
+.port{fill:#fff;stroke:var(--acc);stroke-width:2.2;cursor:crosshair}
+.port:hover{fill:var(--acc)}
+.inp{fill:var(--edge)}
+.lbl{font-size:12px;fill:var(--mut);font-weight:700;font-family:'Sarabun',sans-serif}
+.ph{font-size:12px;fill:var(--mut);font-family:'Sarabun',sans-serif}
+#msg{margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--infobg);font-size:14px;line-height:1.5}
+#msg.ok{background:var(--okbg);color:var(--okc)}#msg.bad{background:var(--badbg);color:var(--badc)}
+ol#log{margin:6px 0 0;padding-left:22px;font-size:13px;color:var(--mut);max-height:140px;overflow:auto}
+.legend{font-size:12px;color:var(--mut);margin-top:8px}
+#pin{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+#pin[hidden]{display:none}
+.dlg{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:20px;width:100%;max-width:320px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.dlg h3{margin:0 0 4px;font-size:18px}.dlg p{margin:0 0 12px;color:var(--mut);font-size:14px}
+.dlg input{width:100%;font:inherit;font-size:22px;letter-spacing:8px;text-align:center;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+#pe{min-height:20px;margin:6px 0;color:var(--badc);font-size:13px;text-align:center}
+.dlg .row{display:flex;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+<header>
+  <h1>🤖 เกม Flowchart ควบคุมแขนกล</h1>
+  <p>ออกแบบผังงานสั่ง Servo ให้แขนกลหยิบกล่องไปวางให้ถูกที่ แล้วกด “เริ่มทำงาน” เพื่อดูแขนกลทำงานตามผังของคุณ</p>
+</header>
+<main>
+  <section class="card">
+    <div class="mission"><b>โจทย์:</b> Design a flowchart to control a robotic arm so that it picks up <b class="r">the red box</b> and places it at <b class="r">point A on the left side</b>, then picks up <b class="g">the green box</b> and places it at <b class="g">point B on the right side</b>.
+    <small>Servo1 = หมุนฐาน (ซ้าย/ขวา) · Servo2 = ไหล่ (ขึ้น/ลง/ไปข้างหน้า) · Servo5 = ข้อศอก · Servo6 = มือจับ · Servo1 หมุนทีละ 8° จึงต้องใช้ Decision วนซ้ำจนถึงจุดหมาย</small></div>
+    <div class="bar">
+      <button class="go" id="run">▶ เริ่มทำงาน</button>
+      <button id="reset">↺ รีเซ็ตแขนกล</button>
+      <button id="clear">🗑 ล้างผัง</button>
+      <button id="sol">💡 แสดงเฉลย</button>
+      <select id="spd" aria-label="ความเร็ว"><option value="1.6">ช้า</option><option value="1" selected>ปกติ</option><option value=".5">เร็ว</option></select>
+    </div>
+    <svg id="fc" viewBox="0 0 1000 810" role="application" aria-label="พื้นที่วาง Flowchart"></svg>
+    <div class="legend">ลากบล็อกจากแถบซ้ายมาวาง · ลากจากจุดวงกลมของบล็อกไปปล่อยบนบล็อกถัดไปเพื่อต่อ flowline · คลิกที่เส้นเพื่อลบเส้น · ลากบล็อกกลับแถบซ้ายเพื่อลบ</div>
+  </section>
+  <section class="side">
+    <div class="card">
+      <h2>จำลองการทำงานของแขนกล</h2>
+      <svg id="sc" viewBox="0 0 600 420" role="img" aria-label="แขนกลและกล่อง"></svg>
+      <div id="msg">ลากบล็อกมาต่อกันเป็นผังงาน เริ่มจาก “Start” และจบที่ “End”</div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2>ลำดับคำสั่งที่ทำงานจริง</h2>
+      <ol id="log"></ol>
+    </div>
+  </section>
+</main>
+<div id="pin" hidden><div class="dlg" role="dialog" aria-modal="true" aria-label="ใส่รหัสดูเฉลย"><h3>🔒 เฉลย</h3><p>ใส่รหัสเพื่อดูเฉลย</p><input id="pv" type="password" inputmode="numeric" maxlength="8" autocomplete="off"><div id="pe"></div><div class="row"><button id="pc">ยกเลิก</button><button class="go" id="pk">ตกลง</button></div></div></div>
+<script>
+const $=id=>document.getElementById(id);
+const fc=$('fc'),sc=$('sc');
+/* ---------- Flowchart model ---------- */
+const COL={terminal:'#6f3f86',process:'#bcd631',decision:'#7a96ff'};
+const HH={terminal:40,process:46,decision:64},PX=336;
+const P=[
+ {k:'start',s:'terminal',l:'Start'},{k:'end',s:'terminal',l:'End'},
+ {k:'s1L',s:'process',l:'หมุน Servo1\nไปทางซ้าย',v:1},{k:'s1R',s:'process',l:'หมุน Servo1\nไปทางขวา',v:1},
+ {k:'s2Up',s:'process',l:'หมุน Servo2\nขึ้น',v:2},{k:'s2Down',s:'process',l:'หมุน Servo2\nลง',v:2},
+ {k:'s2Fwd',s:'process',l:'หมุน Servo2\nไปข้างหน้า',v:2},{k:'s5Down',s:'process',l:'หมุน Servo5\nลงเล็กน้อย',v:5},
+ {k:'grip',s:'process',l:'ควบคุม Servo6\nเพื่อหยิบกล่อง',v:6},{k:'release',s:'process',l:'ควบคุม Servo6\nเพื่อเปิดและวางกล่อง',v:6},
+ {k:'dA',s:'decision',l:'หมุนถึง\nจุด A'},{k:'dG',s:'decision',l:'หมุนถึง\nกล่องสีเขียว'},
+ {k:'dB',s:'decision',l:'หมุนถึง\nจุด B'},{k:'stop',s:'process',l:'หยุดหมุน',v:1}
+];
+let nodes=[],edges=[],nid=1,hl=null,hlBad=false,drag=null,conn=null,running=false,runId=0,actSv=0;
+const N=id=>nodes.find(n=>n.id===id);
+const mkNode=(p,x,y)=>({id:nid++,k:p.k,s:p.s,l:p.l,x,y,w:p.s==='decision'?160:150,h:HH[p.s]});
+function shape(s,w,h,fill){
+  if(s==='terminal')return `<rect class="sh" x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="${h/2}" fill="${fill}"/>`;
+  if(s==='process')return `<rect class="sh" x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="3" fill="${fill}"/>`;
+  return `<polygon class="sh" points="0,${-h/2} ${w/2},0 0,${h/2} ${-w/2},0" fill="${fill}"/>`;
+}
+function nodeSvg(n,pal){
+  const tc=n.s==='terminal'?'#fff':'#1d1830',ls=n.l.split('\n');
+  const tx=ls.map((t,i)=>`<tspan x="0" dy="${i?16:-(ls.length-1)*8}">${t}</tspan>`).join('');
+  let ports='';
+  if(!pal){
+    if(n.k!=='start')ports+=`<circle class="inp" cy="${-n.h/2}" r="4"/>`;
+    if(n.s==='decision')ports+=`<circle class="port" data-port="yes" cy="${n.h/2}" r="7"/><circle class="port" data-port="no" cx="${n.w/2}" r="7"/><text class="lbl" x="12" y="${n.h/2+16}">ใช่</text><text class="lbl" x="${n.w/2+10}" y="-9">ไม่</text>`;
+    else if(n.k!=='end')ports+=`<circle class="port" data-port="out" cy="${n.h/2}" r="7"/>`;
+  }
+  const cls=(pal?'pal':'node')+(n.id===hl?(hlBad?' bad':' run'):'');
+  return `<g class="${cls}" ${pal?`data-pal="${n.k}"`:`data-id="${n.id}"`} transform="translate(${n.x} ${n.y})">${shape(n.s,n.w,n.h,COL[n.s])}<text class="nt" fill="${tc}">${tx}</text>${ports}</g>`;
+}
+function route(e,a,b){
+  const p3=[b.x,b.y-b.h/2];
+  if(e.port==='no'){const p0=[a.x+a.w/2,a.y],q=[b.x+b.w/2,b.y],xs=Math.max(p0[0],q[0])+22;return [p0,[xs,a.y],[xs,b.y],q]}
+  const p0=[a.x,a.y+a.h/2],pts=[p0];
+  if(p3[1]-p0[1]>=36){const ym=(p0[1]+p3[1])/2;pts.push([p0[0],ym],[p3[0],ym],p3)}
+  else if(Math.abs(a.x-b.x)>a.w){const xm=b.x-b.w/2-10,y1=p0[1]+22;pts.push([p0[0],y1],[xm,y1],[xm,p3[1]-24],[p3[0],p3[1]-24],p3)}
+  else{const xs=Math.max(a.x+a.w/2,b.x+b.w/2)+36;pts.push([p0[0],p0[1]+22],[xs,p0[1]+22],[xs,p3[1]-22],[p3[0],p3[1]-22],p3)}
+  return pts;
+}
+function rp(pts,r){
+  pts=pts.filter((p,i)=>i===0||p[0]!==pts[i-1][0]||p[1]!==pts[i-1][1]);
+  let d=`M${pts[0][0]} ${pts[0][1]}`;
+  for(let i=1;i<pts.length-1;i++){
+    const p=pts[i],a=pts[i-1],b=pts[i+1],l1=Math.hypot(p[0]-a[0],p[1]-a[1]),l2=Math.hypot(b[0]-p[0],b[1]-p[1]),q=Math.min(r,l1/2,l2/2);
+    d+=`L${p[0]+(a[0]-p[0])/l1*q} ${p[1]+(a[1]-p[1])/l1*q}Q${p[0]} ${p[1]} ${p[0]+(b[0]-p[0])/l2*q} ${p[1]+(b[1]-p[1])/l2*q}`;
+  }
+  const L=pts[pts.length-1];return d+`L${L[0]} ${L[1]}`;
+}
+function render(){
+  let ed='';
+  edges.forEach((e,i)=>{const a=N(e.from),b=N(e.to);if(!a||!b)return;const d=rp(route(e,a,b),9);
+    ed+=`<path data-edge="${i}" d="${d}" stroke="transparent" stroke-width="16" fill="none" style="cursor:pointer"/><path class="ed" d="${d}" marker-end="url(#ah)"/>`});
+  let pal='';P.forEach((p,i)=>pal+=nodeSvg({...mkNode(p,85+(i%2)*162,62+Math.floor(i/2)*84),id:0},true));
+  fc.innerHTML=`<defs><pattern id="gp" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="var(--grid)" stroke-width="1"/></pattern>
+  <marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L10 4L0 8z" style="fill:var(--edge)"/></marker></defs>
+  <rect x="${PX}" y="0" width="${1000-PX}" height="810" fill="url(#gp)"/>
+  <rect x="0" y="0" width="${PX}" height="810" style="fill:var(--pal)"/><line x1="${PX}" y1="0" x2="${PX}" y2="810" style="stroke:var(--line)" stroke-width="2"/>
+  <text class="lbl" x="${PX/2}" y="22" text-anchor="middle">สัญลักษณ์ Flowchart (ลากไปวาง)</text>
+  <text class="ph" x="${PX/2}" y="790" text-anchor="middle">ลากบล็อกมาวางที่นี่เพื่อลบ</text>
+  ${nodes.length?'':`<text class="ph" x="660" y="400" text-anchor="middle">ลากบล็อกจากซ้ายมาวางตรงนี้</text>`}
+  ${pal}${ed}${nodes.map(n=>nodeSvg(n)).join('')}<path id="tmp" class="ed" stroke-dasharray="6 5" d=""/>`;
+}
+/* ---------- interaction ---------- */
+function pt(e){const p=fc.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(fc.getScreenCTM().inverse());return [q.x,q.y]}
+fc.addEventListener('pointerdown',e=>{
+  if(running)return;
+  const t=e.target,[x,y]=pt(e);
+  const port=t.closest('[data-port]'),ed=t.closest('[data-edge]'),pal=t.closest('[data-pal]'),nd=t.closest('[data-id]');
+  if(port){conn={from:+nd.dataset.id,port:port.dataset.port}}
+  else if(ed){edges.splice(+ed.dataset.edge,1);render();return}
+  else if(pal){const p=P.find(q=>q.k===pal.dataset.pal);
+    if(p.k==='start'&&nodes.some(n=>n.k==='start')){say('มีบล็อก Start อยู่แล้ว 1 อัน','bad');return}
+    const n=mkNode(p,x,y);nodes.push(n);drag={n,dx:0,dy:0};render()}
+  else if(nd){const n=N(+nd.dataset.id);drag={n,dx:n.x-x,dy:n.y-y};nodes.splice(nodes.indexOf(n),1);nodes.push(n);render()}
+  else return;
+  fc.setPointerCapture(e.pointerId);e.preventDefault();
+});
+fc.addEventListener('pointermove',e=>{
+  const [x,y]=pt(e);
+  if(drag){drag.n.x=Math.max(30,Math.min(985,x+drag.dx));drag.n.y=Math.max(25,Math.min(790,y+drag.dy));render()}
+  else if(conn){$('tmp').setAttribute('d',rp(route({port:conn.port},N(conn.from),{x,y,w:0,h:0}),9))}
+});
+fc.addEventListener('pointerup',e=>{
+  if(drag){const n=drag.n;if(n.x<PX){nodes=nodes.filter(m=>m!==n);edges=edges.filter(g=>g.from!==n.id&&g.to!==n.id)}
+    else n.x=Math.max(PX+n.w/2+4,n.x);drag=null;render()}
+  if(conn){const el=document.elementFromPoint(e.clientX,e.clientY),tn=el&&el.closest('[data-id]');
+    if(tn){const t=N(+tn.dataset.id);
+      if(t&&t.id!==conn.from&&t.k!=='start'){edges=edges.filter(g=>!(g.from===conn.from&&g.port===conn.port));edges.push({from:conn.from,port:conn.port,to:t.id})}}
+    conn=null;render()}
+});
+/* ---------- Robot scene (pseudo-3D) ---------- */
+const C=[300,330],SHZ=108,L1=112,L2=100,K=.42,A_=-56,G_=48,B_=96,rad=d=>d*Math.PI/180;
+let R,boxes,holding,order;
+function resetState(){R={r:40,h:170,phi:0,g:0};boxes={red:{phi:0},green:{phi:G_}};holding=null;order=[]}
+const pj=(r,z,f)=>[C[0]+r*Math.sin(f),C[1]+K*r*Math.cos(f)-z];
+function cube(p,c1,c2,c3){return `<g transform="translate(${p[0]} ${p[1]})"><rect x="-20" y="-20" width="40" height="40" fill="${c1}" stroke="rgba(0,0,0,.45)"/><polygon points="-20,-20 -12,-28 28,-28 20,-20" fill="${c2}" stroke="rgba(0,0,0,.4)"/><polygon points="20,-20 28,-28 28,12 20,20" fill="${c3}" stroke="rgba(0,0,0,.4)"/><text y="1" text-anchor="middle" dominant-baseline="central" font-size="9" fill="#fff" font-weight="700" font-family="Sarabun,sans-serif" opacity=".9" transform="skewY(-6)">iDekTep</text></g>`}
+function link(p,q,w1,w2,fill){const dx=q[0]-p[0],dy=q[1]-p[1],l=Math.hypot(dx,dy)||1,nx=-dy/l,ny=dx/l;
+  return `<polygon points="${p[0]+nx*w1},${p[1]+ny*w1} ${q[0]+nx*w2},${q[1]+ny*w2} ${q[0]-nx*w2},${q[1]-ny*w2} ${p[0]-nx*w1},${p[1]-ny*w1}" fill="${fill}" stroke="rgba(0,0,0,.4)" stroke-width="1.5" stroke-linejoin="round"/>`}
+function joint(p,r,c){let s=`<circle cx="${p[0]}" cy="${p[1]}" r="${r}" fill="${c}" stroke="rgba(0,0,0,.45)" stroke-width="1.5"/>`;
+  for(let i=0;i<5;i++){const a=i*1.2566;s+=`<circle cx="${p[0]+Math.cos(a)*r*.55}" cy="${p[1]+Math.sin(a)*r*.55}" r="1.8" fill="#fff" stroke="rgba(0,0,0,.35)" stroke-width=".6"/>`}return s}
+function badge(p,n){const on=actSv===n;return `<g transform="translate(${p[0]} ${p[1]})"><circle r="9" fill="${on?'#ff7a00':'#555'}" stroke="#fff" stroke-width="1.5"/><text y="1" text-anchor="middle" dominant-baseline="central" font-size="10" font-weight="700" fill="#fff" font-family="Sarabun,sans-serif">S${n}</text></g>`}
+function marker(phi,l,c){const p=pj(150,0,rad(phi));return `<ellipse cx="${p[0]}" cy="${p[1]}" rx="34" ry="14" fill="none" stroke="${c}" stroke-width="2" stroke-dasharray="5 4"/><circle cx="${p[0]}" cy="${p[1]+27}" r="11" fill="${c}"/><text x="${p[0]}" y="${p[1]+28}" text-anchor="middle" dominant-baseline="central" fill="#fff" font-weight="700" font-size="14" font-family="Sarabun,sans-serif">${l}</text>`}
+function draw(){
+  const f=rad(R.phi),Wz=R.h+52,dz=Wz-SHZ,d=Math.max(20,Math.min(L1+L2-1,Math.hypot(R.r,dz))),a=Math.atan2(dz,R.r),th=Math.acos((L1*L1+d*d-L2*L2)/(2*L1*d));
+  const S0=pj(0,SHZ,f),E=pj(L1*Math.cos(a+th),SHZ+L1*Math.sin(a+th),f),W=pj(R.r,Wz,f),sp=32-10*R.g;
+  const bx=['red','green'].map(n=>{const h=holding===n,p=h?pj(R.r,R.h+20,f):pj(150,20,rad(boxes[n].phi));return {n,p,dep:h?R.r*Math.cos(f):150*Math.cos(rad(boxes[n].phi))}}).sort((u,v)=>u.dep-v.dep);
+  const gp=pj(R.r,0,f),servoFront=Math.sin(f)>0,sv=`<rect x="${C[0]-40*Math.cos(f)-13}" y="${C[1]+K*40*Math.sin(f)-92}" width="26" height="44" rx="3" fill="#2b2b2f" stroke="#000" stroke-width="1.5"/>`;
+  sc.innerHTML=`<defs><linearGradient id="gT" x1="0" x2="1"><stop offset="0" stop-color="#34a9a5"/><stop offset=".45" stop-color="#72e3df"/><stop offset="1" stop-color="#2f9c98"/></linearGradient><linearGradient id="gY" x1="0" x2="1"><stop offset="0" stop-color="#d9b90f"/><stop offset=".5" stop-color="#f7de45"/><stop offset="1" stop-color="#cfae0d"/></linearGradient></defs>
+  <ellipse cx="300" cy="345" rx="292" ry="100" style="fill:var(--floor)"/>
+  ${marker(A_,'A','#c0392b')}${marker(B_,'B','#3f8a1c')}
+  <ellipse cx="${gp[0]}" cy="${gp[1]}" rx="26" ry="10" fill="rgba(0,0,0,.18)"/>
+  ${bx.map(b=>b.n==='red'?cube(b.p,'#e53935','#f08a86','#b02623'):cube(b.p,'#43a047','#86cc8a','#2c7a30')).join('')}
+  <ellipse cx="${C[0]}" cy="${C[1]+6}" rx="86" ry="33" fill="rgba(0,0,0,.2)"/>
+  <ellipse cx="${C[0]}" cy="${C[1]}" rx="80" ry="31" fill="#bfa10c" stroke="rgba(0,0,0,.4)"/>
+  <polygon points="${C[0]-80},${C[1]} ${C[0]-50},${C[1]-30} ${C[0]+50},${C[1]-30} ${C[0]+80},${C[1]}" fill="url(#gY)" stroke="rgba(0,0,0,.35)"/>
+  <ellipse cx="${C[0]}" cy="${C[1]}" rx="80" ry="31" fill="url(#gY)" clip-path="inset(50% 0 0 0)"/>
+  <ellipse cx="${C[0]-34}" cy="${C[1]-12}" rx="16" ry="7" fill="#2b2b2f"/><ellipse cx="${C[0]+34}" cy="${C[1]-12}" rx="16" ry="7" fill="#2b2b2f"/>
+  <ellipse cx="${C[0]}" cy="${C[1]-30}" rx="50" ry="17" fill="#f7de45" stroke="rgba(0,0,0,.35)"/>
+  <ellipse cx="${C[0]}" cy="${C[1]-36}" rx="46" ry="15" fill="#4fc9c6" stroke="rgba(0,0,0,.4)"/>
+  ${servoFront?'':sv}
+  <rect x="${C[0]-28}" y="${C[1]-112}" width="56" height="76" fill="url(#gT)" stroke="rgba(0,0,0,.4)"/>
+  <ellipse cx="${C[0]}" cy="${C[1]-36}" rx="28" ry="10" fill="#3aa8a4" stroke="rgba(0,0,0,.35)"/>
+  <ellipse cx="${C[0]}" cy="${C[1]-112}" rx="28" ry="10" fill="#8ff0ec" stroke="rgba(0,0,0,.4)"/>
+  ${[[-14,-62],[14,-62],[0,-86]].map(q=>`<circle cx="${C[0]+q[0]}" cy="${C[1]+q[1]}" r="3" fill="#fff" stroke="rgba(0,0,0,.4)" stroke-width=".8"/>`).join('')}
+  ${servoFront?sv:''}
+  ${link(S0,E,13,10,'#f0a77d')}${link(E,W,11,12,'#f6f6f6')}
+  ${joint(S0,15,'#4fc9c6')}${joint(E,12,'#4fc9c6')}
+  <g transform="translate(${W[0]} ${W[1]})"><rect x="-17" y="-14" width="34" height="24" rx="4" fill="#eaeaea" stroke="rgba(0,0,0,.45)" stroke-width="1.5"/><text y="-2" text-anchor="middle" dominant-baseline="central" font-size="8" fill="#555" font-weight="700" font-family="Sarabun,sans-serif">SERVO</text>
+  <rect x="-34" y="9" width="68" height="7" rx="2" fill="#6c6c70" stroke="#000" stroke-opacity=".5"/>
+  <g fill="#8d8d92" stroke="rgba(0,0,0,.55)" stroke-width="1.3"><polygon points="${-sp-4},16 ${-sp+4},16 ${-sp+4},44 ${-sp+1},48 ${-sp-4},44"/><polygon points="${sp-4},16 ${sp+4},16 ${sp+4},44 ${sp},48 ${sp-4},44"/></g></g>
+  ${badge([C[0]+88,C[1]-46],1)}${badge([S0[0]+22,S0[1]-22],2)}${badge([E[0]+18,E[1]-20],5)}${badge([W[0]+30,W[1]-12],6)}
+  <text x="14" y="26" font-size="13" font-weight="700" font-family="Sarabun,sans-serif" style="fill:var(--mut)">Servo1 = ${R.phi.toFixed(0)}°</text>`;
+}
+const spd=()=>+$('spd').value,sleep=ms=>new Promise(r=>setTimeout(r,ms*spd()));
+function to(o,D,id){const s={...R};return new Promise(res=>{const t0=performance.now();(function st(now){if(id!==runId)return res();const t=Math.min(1,(now-t0)/(D*spd())),k=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;for(const q in o)R[q]=s[q]+(o[q]-s[q])*k;draw();t<1?requestAnimationFrame(st):res()})(t0)})}
+function say(t,c){const m=$('msg');m.textContent=t;m.className=c||''}
+function li(t){const o=document.createElement('li');o.textContent=t.replace('\n',' ');$('log').appendChild(o);o.scrollIntoView({block:'nearest'})}
+function resetScene(){runId++;running=false;hl=null;hlBad=false;actSv=0;resetState();$('log').innerHTML='';say('ลากบล็อกมาต่อกันเป็นผังงาน เริ่มจาก “Start” และจบที่ “End”');render();draw()}
+/* ---------- Execute ---------- */
+async function act(n,id){
+  const k=n.k;
+  if(k==='s2Fwd'){await to({r:150,h:60},1000,id);return}
+  if(k==='s5Down'||k==='s2Down'){if(R.r<100)return 'ยังไม่ได้ยื่นแขนไปข้างหน้า (หมุน Servo2 ไปข้างหน้า) แขนจึงลดลงไม่ถึงกล่อง';await to({h:0},750,id);return}
+  if(k==='s2Up'){await to({h:110},750,id);return}
+  if(k==='s1L'||k==='s1R'){
+    if(R.h<45)return 'แขนกลชนกล่องขณะหมุน! ต้องยกแขนขึ้น (หมุน Servo2 ขึ้น) ก่อนหมุน Servo1';
+    const p=R.phi+(k==='s1L'?-8:8);if(Math.abs(p)>170)return 'Servo1 หมุนเกินขีดจำกัด';
+    await to({phi:p},260,id);return}
+  if(k==='stop'){await sleep(500);return}
+  if(k==='grip'){
+    if(holding)return 'แขนกลถือกล่องอยู่แล้ว';
+    const b=Object.keys(boxes).find(c=>Math.abs(boxes[c].phi-R.phi)<4);
+    if(R.r<100||R.h>3||!b){await to({g:1},350,id);await to({g:0},350,id);return 'คีบไม่ได้: มือจับต้องอยู่ที่กล่องและลดแขนลงถึงพื้นก่อน'}
+    await to({g:1},350,id);holding=b;order.push(b);return}
+  if(k==='release'){
+    if(!holding)return 'ไม่มีกล่องให้วาง: ต้องคีบกล่องก่อน';
+    if(R.h>3)return 'วางกล่องกลางอากาศ! ต้องลดแขนลง (หมุน Servo2 ลง) ให้ถึงพื้นก่อน';
+    boxes[holding].phi=R.phi;holding=null;await to({g:0},350,id)}
+}
+const cond={dA:()=>Math.abs(R.phi-A_)<4,dG:()=>Math.abs(R.phi-boxes.green.phi)<4,dB:()=>Math.abs(R.phi-B_)<4};
+async function run(){
+  if(running)return;resetScene();
+  const id=runId,st=nodes.filter(n=>n.k==='start');
+  if(st.length!==1){say('ต้องมีบล็อก Start 1 อัน','bad');return}
+  running=true;let cur=st[0],steps=0,reached=false;
+  const fail=(t,n)=>{hl=n.id;hlBad=true;actSv=0;render();draw();say('❌ '+t,'bad');running=false};
+  while(cur){
+    if(id!==runId)return;
+    hl=cur.id;hlBad=false;actSv=(P.find(p=>p.k===cur.k)||{}).v||0;render();draw();
+    if(++steps>160){fail('ทำงานวนซ้ำนานเกินไป ตรวจสอบเส้นลูกศรและเงื่อนไขอีกครั้ง',cur);return}
+    li(cur.l);
+    let port='out';
+    if(cur.k==='end'){await sleep(400);reached=true;break}
+    if(cur.s==='decision'){const ok=cond[cur.k]();port=ok?'yes':'no';say('🔷 '+cur.l.replace('\n','')+'? → '+(ok?'ใช่':'ไม่')+'  (Servo1 = '+R.phi+'°)');await sleep(280)}
+    else if(cur.k!=='start'){const r=await act(cur,id);if(id!==runId)return;if(r){fail(r,cur);return}}
+    else await sleep(400);
+    const e=edges.find(g=>g.from===cur.id&&g.port===port);
+    if(!e){fail('เส้น flowline ขาดที่บล็อก “'+cur.l.replace('\n',' ')+'”'+(port==='no'?' (ทาง “ไม่”)':'')+' ยังต่อไปไม่ถึง End',cur);return}
+    cur=N(e.to);
+  }
+  hl=null;actSv=0;render();draw();running=false;
+  if(!reached)return;
+  const okR=Math.abs(boxes.red.phi-A_)<4,okG=Math.abs(boxes.green.phi-B_)<4;
+  if(okR&&okG&&!holding&&order[0]==='red'&&order[1]==='green')say('🎉 ภารกิจสำเร็จ! กล่องแดงอยู่ที่จุด A และกล่องเขียวอยู่ที่จุด B ตามลำดับที่โจทย์กำหนด (ผังนี้ใช้ '+nodes.length+' บล็อก)','ok');
+  else if(okR&&okG)say('กล่องอยู่ถูกที่แล้ว แต่ลำดับไม่ตรงโจทย์ — ต้องหยิบกล่องสีแดงก่อน แล้วค่อยหยิบกล่องสีเขียว','bad');
+  else say('ผังงานทำงานถึง End แล้ว แต่ยังไม่ตรงโจทย์: '+(okR?'':'กล่องแดงไม่ได้อยู่ที่จุด A ')+(okG?'':'กล่องเขียวไม่ได้อยู่ที่จุด B'),'bad');
+}
+function solution(){
+  resetScene();nodes=[];edges=[];
+  const cols=[['start','s2Fwd','s5Down','grip','s2Up','s1L','dA'],['stop','s2Down','release','s2Up','s1R','dG','stop','s2Down','grip'],['s2Up','s1R','dB','stop','s2Down','release','end']];
+  const seq=[];
+  cols.forEach((c,ci)=>c.forEach((k,i)=>{const n=mkNode(P.find(p=>p.k===k),440+ci*200,62+i*86);nodes.push(n);seq.push(n)}));
+  for(let i=0;i<seq.length-1;i++)edges.push({from:seq[i].id,port:seq[i].s==='decision'?'yes':'out',to:seq[i+1].id});
+  [[6,5],[12,11],[18,17]].forEach(([d,t])=>edges.push({from:seq[d].id,port:'no',to:seq[t].id}));
+  render();say('นี่คือตัวอย่างเฉลย — กด “เริ่มทำงาน” เพื่อดูแขนกลทำงาน');
+}
+$('run').onclick=run;$('reset').onclick=resetScene;
+$('clear').onclick=()=>{nodes=[];edges=[];resetScene()};
+const pin=$('pin'),pv=$('pv');
+function askPin(){pv.value='';$('pe').textContent='';pin.hidden=false;pv.focus()}
+function okPin(){if(pv.value==='1234'){pin.hidden=true;solution()}else{$('pe').textContent='รหัสไม่ถูกต้อง ลองอีกครั้ง';pv.value='';pv.focus()}}
+$('sol').onclick=askPin;$('pk').onclick=okPin;$('pc').onclick=()=>{pin.hidden=true};
+pv.addEventListener('keydown',e=>{if(e.key==='Enter')okPin();if(e.key==='Escape')pin.hidden=true});
+resetState();render();draw();
+</script>
+</body>
+</html>
