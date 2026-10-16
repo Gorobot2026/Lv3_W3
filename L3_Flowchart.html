@@ -225,6 +225,8 @@ body.construction-stage .runtime-title{background:linear-gradient(90deg,#98621c,
 :root[data-theme="dark"] .asset-slot.has-asset{background:#16372d}
 :root[data-theme="dark"] .asset-dock-description,:root[data-theme="dark"] .asset-slot-title>span:last-child{color:#c2b4d1}
 @media(max-width:1150px){.asset-dock-grid{grid-template-columns:1fr}}
+.zoom-tools{display:flex;align-items:center;gap:5px}.zoom-tools button{padding:3px 9px;font-size:12px;min-width:30px;border-radius:8px}#zoomLbl{font-size:11px;font-weight:800;min-width:40px;text-align:center;color:var(--acc)}
+#fc{cursor:grab}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script>
 </head>
@@ -239,9 +241,9 @@ body.construction-stage .runtime-title{background:linear-gradient(90deg,#98621c,
     <div class="brand-copy">
       <span class="eyebrow">ROBOTICS • CODING • CREATIVE PLAY</span>
       <h1>🤖 Robot Arm <em>Flowchart Quest</em></h1>
-      <p>ลากบล็อก · ต่อผังงาน · ทดลองแขนกล 3D · ปลดล็อกภารกิจสร้างสรรค์ทั้ง 5 ด่าน</p>
+      <p>ลากบล็อก · ต่อผังงาน · ทดลองแขนกล 3D · ปลดล็อกภารกิจสร้างสรรค์ทั้ง 12 ด่าน</p>
     </div>
-    <span class="quest-tag">✦ 5 LEVELS</span>
+    <span class="quest-tag">✦ 12 LEVELS</span>
   </div>
 </header>
 <main>
@@ -256,9 +258,9 @@ body.construction-stage .runtime-title{background:linear-gradient(90deg,#98621c,
       <button id="sol">💡 แสดงเฉลย</button>
       <select id="spd" aria-label="ความเร็ว"><option value="1.6">ช้า</option><option value="1" selected>ปกติ</option><option value=".5">เร็ว</option></select>
     </div>
-    <div class="flow-head"><div class="flow-guide"><span><i class="guide-dot start-dot"></i>เริ่ม / จบ</span><span><i class="guide-dot servo-dot"></i>คำสั่ง Servo</span><span><i class="guide-dot decision-dot"></i>ตรวจสอบเงื่อนไข</span></div><span id="flowCount" class="flow-count">0 บล็อก · 0 เส้น</span></div>
+    <div class="flow-head"><div class="flow-guide"><span><i class="guide-dot start-dot"></i>เริ่ม / จบ</span><span><i class="guide-dot servo-dot"></i>คำสั่ง Servo</span><span><i class="guide-dot decision-dot"></i>ตรวจสอบเงื่อนไข</span></div><span class="zoom-tools"><button type="button" id="zout" title="ซูมออก" aria-label="ซูมออก">−</button><span id="zoomLbl">100%</span><button type="button" id="zin" title="ซูมเข้า" aria-label="ซูมเข้า">＋</button><button type="button" id="zfit" title="ปรับมุมมองให้เห็นผังทั้งหมด">⌖ พอดีผัง</button></span><span id="flowCount" class="flow-count">0 บล็อก · 0 เส้น</span></div>
     <svg id="fc" viewBox="0 0 1000 810" role="application" aria-label="พื้นที่วาง Flowchart"></svg>
-    <div class="legend"><b>วิธีเล่น</b> 👆 ลากบล็อกไปวางในพื้นที่ขวา · ลากวงกลมใต้บล็อกเชื่อมกับบล็อกถัดไป · คลิกเส้นเพื่อลบ · ลากบล็อกกลับฝั่งซ้ายเพื่อลบ</div>
+    <div class="legend"><b>วิธีเล่น</b> 👆 ลากบล็อกไปวางในพื้นที่ขวา · ลากวงกลมใต้บล็อกเชื่อมกับบล็อกถัดไป · คลิกเส้นเพื่อลบ · ลากบล็อกกลับฝั่งซ้ายเพื่อลบ · <b>พื้นที่ไม่จำกัด</b>: ลากพื้นที่ว่างหรือเลื่อนล้อเมาส์เพื่อเลื่อนมุมมอง · Ctrl + ล้อเมาส์ (หรือปุ่ม ＋ −, ใช้สองนิ้วบนมือถือ) เพื่อซูม</div>
   </section>
   <section class="side">
     <div class="card viewer-card">
@@ -315,10 +317,11 @@ const KD={
  s4Dn:{s:'process',l:'หมุน Servo4\nลงเล็กน้อย',v:4},s4Up:{s:'process',l:'หมุน Servo4\nเงยขึ้น',v:4},
  s5Grip:{s:'process',l:'ควบคุม Servo5\nเพื่อหนีบชิ้นงาน',v:5},s5Open:{s:'process',l:'ควบคุม Servo5\nเพื่อปล่อยชิ้นงาน',v:5},
  stop:{s:'process',l:'หยุดหมุน',v:1},
- dT:{s:'decision',l:'หมุนถึง\nเป้าหมาย?'},dA:{s:'decision',l:'หมุนถึง\nจุด A?'},dG:{s:'decision',l:'หมุนถึง\nกล่องสีเขียว?'},dB:{s:'decision',l:'หมุนถึง\nจุด B?'},dM2:{s:'decision',l:'ถึงชิ้นงาน\nชิ้นที่ 2?'}
+ dT:{s:'decision',l:'หมุนถึง\nเป้าหมาย?'},dA:{s:'decision',l:'หมุนถึง\nจุด A?'},dG:{s:'decision',l:'หมุนถึง\nกล่องสีเขียว?'},dB:{s:'decision',l:'หมุนถึง\nจุด B?'},dM2:{s:'decision',l:'ถึงชิ้นงาน\nชิ้นที่ 2?'},dH:{s:'decision',l:'ถือกล่อง\nอยู่หรือไม่?'},dF:{s:'decision',l:'เจอกล่องที่\nยังไม่เก็บ?'},dRd:{s:'decision',l:'กล่องที่ถือ\nเป็นสีแดง?'},dC:{s:'decision',l:'หมุนถึง\nจุด C?'},dO:{s:'decision',l:'หมุนถึงจุด\nเริ่มต้น O?'},dK2:{s:'decision',l:'ครบ 2 ใบ\nหรือยัง?'},dK3:{s:'decision',l:'ครบ 3 รอบ\nหรือยัง?'},dDest:{s:'decision',l:'ถึงจุดเก็บของ\nกล่องที่ถือ?'}
 };
 const COL={terminal:'#8750d7',process:'#40cfb9',decision:'#7c9df8'},HH={terminal:40,process:46,decision:64},PX=336;
-const A_=-56,G_=48,B_=96,T1=48;
+const A_=-56,G_=48,B_=96,T1=48,C_=-104,PADS=[A_,B_,C_];
+function colLayout(ks,per,x0,dx,y0,dy){return ks.map((k,i)=>[k,x0+Math.floor(i/per)*dx,y0+(i%per)*dy])}
 /* ---------- Levels ---------- */
 const LV=[
 {t:'ด่าน 1 · หมุนฐาน (Servo1)',m:'สั่ง Servo1 หมุนฐานไปทางขวา จนปลายแขนอยู่เหนือดาว ⭐ แล้วจบโปรแกรม',
@@ -353,9 +356,79 @@ const LV=[
   sol:()=>{const ks=['start','s3Ext','s2Dn','s4Dn','s5Grip','s2Up','s1L','dA','stop','s2Dn','s5Open','s2Up','s1R','dM2','stop','s2Dn','s5Grip','s2Up','s1R','dB','stop','s2Dn','s5Open','end'];
     const nd=ks.map((k,i)=>[k,440+Math.floor(i/8)*200,60+(i%8)*88]),ed=[];
     ks.forEach((k,i)=>{if(i<ks.length-1)ed.push([i,KD[k].s==='decision'?'yes':'out',i+1])});
-    ed.push([7,'no',6],[13,'no',12],[19,'no',18]);return[nd,ed]}}
+    ed.push([7,'no',6],[13,'no',12],[19,'no',18]);return[nd,ed]}},
+ {t:'ด่าน 6 · สลับเป้าหมาย',
+  m:'ย้ายกล่องสีแดงไปวางที่จุด B ทางขวา แล้วย้ายกล่องสีเขียวไปวางที่จุด A ทางซ้าย (สลับกับโจทย์ด่าน 3) ตามลำดับ: แดงก่อน เขียวทีหลัง',
+  h:'ต้องกลับทิศทางระหว่างงาน: หลังวางกล่องแดงที่ B ให้หมุนซ้ายกลับมาหากล่องเขียว (Decision “หมุนถึงกล่องสีเขียว?”) แล้วหมุนซ้ายต่อจนถึง A',
+  pal:['start','end','s1L','s1R','s2Up','s2Dn','s3Ext','s3Fold','s4Dn','s4Up','s5Grip','s5Open','stop','dA','dG','dB'],
+  boxes:[],stage:2,pads:['A','B'],setup(){boxes={red:{phi:0},green:{phi:G_}}},
+  sol:()=>{const ks=['start','s3Ext','s2Dn','s4Dn','s5Grip','s2Up','s1R','dB','stop','s2Dn','s5Open','s2Up','s1L','dG','stop','s2Dn','s5Grip','s2Up','s1L','dA','stop','s2Dn','s5Open','end'];
+   const nd=colLayout(ks,8,440,200,60,88),ed=[];
+   ks.forEach((k,i)=>{if(i<ks.length-1)ed.push([i,KD[k].s==='decision'?'yes':'out',i+1])});
+   ed.push([7,'no',6],[13,'no',12],[19,'no',18]);return[nd,ed]}},
+ {t:'ด่าน 7 · ถ้า…แล้ว… (เงื่อนไขสองทาง)',
+  m:'บางรอบแขนกลถือกล่องสีแดงอยู่แล้ว บางรอบกล่องยังวางอยู่บนพื้นตรงหน้า ออกแบบผังเดียวที่ใช้ได้ทั้งสองกรณี แล้วนำกล่องสีแดงไปวางที่จุด A (ต้องผ่านทั้ง 2 กรณีทดสอบ)',
+  h:'ใช้ Decision “ถือกล่องอยู่หรือไม่?” แยกสองทาง: ถ้า “ไม่” ให้ไปหยิบกล่องก่อน แล้วทั้งสองทางไปรวมกันที่ขั้นตอนหมุนไป A (ลาก flowline จากหลายบล็อกมารวมที่บล็อกเดียวได้)',
+  pal:['start','end','s1L','s2Up','s2Dn','s3Ext','s4Dn','s5Grip','s5Open','stop','dA','dH'],
+  boxes:[],stage:2,pads:['A'],
+  cases:[{hold:true},{hold:false}],
+  setup(c){boxes={red:{phi:0}};if(c&&c.hold){R.a2=UP;R.a3=POSE.a3;R.a4=POSE.a4;R.g=1;R.cs=22;holding='red'}},
+  sol:()=>[[['start',440,60],['dH',440,150],['s3Ext',640,236],['s2Dn',640,312],['s4Dn',640,388],['s5Grip',640,464],['s2Up',640,540],['s1L',440,626],['dA',440,712],['stop',840,100],['s2Dn',840,190],['s5Open',840,280],['end',840,370]],
+   [[0,'out',1],[1,'yes',7],[1,'no',2],[2,'out',3],[3,'out',4],[4,'out',5],[5,'out',6],[6,'out',7],[7,'out',8],[8,'yes',9],[8,'no',7],[9,'out',10],[10,'out',11],[11,'out',12]]]},
+ {t:'ด่าน 8 · ค้นหากล่องด้วยเซนเซอร์',
+  m:'กล่องสีแดงวางอยู่ทางขวาของแขนกล แต่ “ไม่ทราบตำแหน่งแน่นอน” (เปลี่ยนทุกรอบทดสอบ) ให้หมุนฐานไปทางขวาจนเซนเซอร์เจอกล่อง แล้วหยิบไปวางที่จุด A (ต้องผ่าน 2 กรณีทดสอบ)',
+  h:'ห้ามนับองศาเอง! ใช้ Decision “เจอกล่องที่ยังไม่เก็บ?” วนหมุนขวาจนเจอ → หยุด → ยืดแขน ก้มลง ลดข้อมือ หนีบ ยกขึ้น → หมุนซ้ายจนถึง A → ก้มลง → ปล่อย',
+  pal:['start','end','s1L','s1R','s2Up','s2Dn','s3Ext','s3Fold','s4Dn','s5Grip','s5Open','stop','dF','dA'],
+  boxes:[],stage:2,pads:['A'],
+  cases:[{red:24},{red:72}],
+  setup(c){boxes={red:{phi:c.red}}},
+  sol:()=>{const ks=['start','s1R','dF','stop','s3Ext','s2Dn','s4Dn','s5Grip','s2Up','s1L','dA','stop','s2Dn','s5Open','end'];
+   const nd=colLayout(ks,8,440,200,60,88),ed=[];
+   ks.forEach((k,i)=>{if(i<ks.length-1)ed.push([i,KD[k].s==='decision'?'yes':'out',i+1])});
+   ed.push([2,'no',1],[10,'no',9]);return[nd,ed]}},
+ {t:'ด่าน 9 · คัดแยกสีกล่อง',
+  m:'สายพานส่งกล่องมาที่ตำแหน่งหน้าแขนกลทีละใบ: ถ้ากล่องเป็นสีแดง → นำไปวางที่จุด A (ซ้าย) · ถ้าเป็นสีเขียว → นำไปวางที่จุด B (ขวา) ผังเดียวต้องใช้ได้ทั้งสองสี (ผ่าน 2 กรณีทดสอบ)',
+  h:'หยิบกล่องก่อน แล้วใช้ Decision “กล่องที่ถือเป็นสีแดง?” แตกสองทาง: ใช่ → หมุนซ้ายไป A · ไม่ → หมุนขวาไป B · ทั้งสองทางไปรวมที่ ก้มลง → ปล่อย → End',
+  pal:['start','end','s1L','s1R','s2Up','s2Dn','s3Ext','s4Dn','s5Grip','s5Open','stop','dRd','dA','dB'],
+  boxes:[],stage:2,pads:['A','B'],
+  cases:[{c:'red'},{c:'green'}],
+  setup(c){boxes={};boxes[c.c]={phi:0}},
+  sol:()=>[[['start',440,60],['s3Ext',440,140],['s2Dn',440,220],['s4Dn',440,300],['s5Grip',440,380],['s2Up',440,460],['dRd',440,540],['s1L',440,640],['dA',440,730],['s1R',640,600],['dB',640,690],['stop',840,300],['s2Dn',840,390],['s5Open',840,480],['end',840,570]],
+   [[0,'out',1],[1,'out',2],[2,'out',3],[3,'out',4],[4,'out',5],[5,'out',6],[6,'yes',7],[6,'no',9],[7,'out',8],[8,'yes',11],[8,'no',7],[9,'out',10],[10,'yes',11],[10,'no',9],[11,'out',12],[12,'out',13],[13,'out',14]]]},
+ {t:'ด่าน 10 · ค้นหา 2 กล่อง',
+  m:'กล่องสีแดงและกล่องสีเขียวอยู่ทางขวา (กล่องแดงอยู่ใกล้กว่าเสมอ แต่ตำแหน่งเปลี่ยนทุกรอบทดสอบ) ให้ค้นหาด้วยเซนเซอร์ แล้วนำกล่องแดงไปวางที่จุด A และกล่องเขียวไปวางที่จุด B (ผ่าน 2 กรณีทดสอบ)',
+  h:'ใช้ “เจอกล่องที่ยังไม่เก็บ?” ค้นหากล่องแดง → ไป A → กลับมาหมุนขวาค้นหากล่องเขียวต่อ → ไป B · กล่องที่วางบนจุด A/B แล้ว เซนเซอร์จะไม่นับ · ยืดแขนไว้ก่อนเริ่มหมุนได้',
+  pal:['start','end','s1L','s1R','s2Up','s2Dn','s3Ext','s3Fold','s4Dn','s4Up','s5Grip','s5Open','stop','dF','dA','dB'],
+  boxes:[],stage:2,pads:['A','B'],
+  cases:[{red:24,green:64},{red:48,green:88}],
+  setup(c){boxes={red:{phi:c.red},green:{phi:c.green}}},
+  sol:()=>{const ks=['start','s3Ext','s1R','dF','stop','s2Dn','s4Dn','s5Grip','s2Up','s1L','dA','stop','s2Dn','s5Open','s2Up','s1R','dF','stop','s2Dn','s5Grip','s2Up','s1R','dB','stop','s2Dn','s5Open','end'];
+   const nd=colLayout(ks,9,440,200,60,78),ed=[];
+   ks.forEach((k,i)=>{if(i<ks.length-1)ed.push([i,KD[k].s==='decision'?'yes':'out',i+1])});
+   ed.push([3,'no',2],[10,'no',9],[16,'no',15],[22,'no',21]);return[nd,ed]}},
+ {t:'ด่าน 11 · ส่งไป-กลับ 3 รอบ (Loop + ตัวนับ)',
+  m:'ย้ายกล่องสีแดงจากจุดเริ่มต้น O ไปวางที่จุด A แล้วย้ายกลับมาวางที่ O เป็น 1 รอบ ให้ทำซ้ำทั้งหมด 3 รอบแล้วจบ (กล่องต้องอยู่ที่ O ตอนจบ)',
+  h:'ใช้ Decision “ครบ 3 รอบหรือยัง?” เป็นตัวนับ: ไม่ครบ → วนกลับไปหนีบใหม่ · ใช้ “หมุนถึงจุด A?” และ “หมุนถึงจุดเริ่มต้น?” ควบคุมการหมุนทั้งสองทิศ (Loop ซ้อน Loop)',
+  pal:['start','end','s1L','s1R','s2Up','s2Dn','s3Ext','s4Dn','s5Grip','s5Open','stop','dA','dO','dK3'],
+  boxes:[],stage:2,pads:['A','O'],
+  setup(){boxes={red:{phi:0}}},
+  sol:()=>[[['start',440,60],['s3Ext',440,150],['s2Dn',440,240],['s4Dn',440,330],['s5Grip',640,60],['s2Up',640,140],['s1L',640,220],['dA',640,310],['stop',640,410],['s2Dn',640,490],['s5Open',640,570],['s5Grip',640,650],['s2Up',840,140],['s1R',840,218],['dO',840,296],['stop',840,380],['s2Dn',840,458],['s5Open',840,536],['dK3',840,616],['s2Up',840,696],['end',840,776]],
+   [[0,'out',1],[1,'out',2],[2,'out',3],[3,'out',4],[4,'out',5],[5,'out',6],[6,'out',7],[7,'yes',8],[7,'no',6],[8,'out',9],[9,'out',10],[10,'out',11],[11,'out',12],[12,'out',13],[13,'out',14],[14,'yes',15],[14,'no',13],[15,'out',16],[16,'out',17],[17,'out',18],[18,'yes',19],[18,'no',4],[19,'out',20]]]},
+ {t:'ด่าน 12 · คลังสินค้าอัตโนมัติ (ด่านสุดท้าย)',
+  m:'มีกล่องสีแดงและสีเขียวอยู่ทางขวา (ตำแหน่งและลำดับสีเปลี่ยนทุกรอบทดสอบ) ให้ค้นหากล่องทีละใบด้วยเซนเซอร์ แล้วเก็บตามสี: แดง → จุด A · เขียว → จุด C (ทั้งสองจุดอยู่ทางซ้าย) ให้ครบทั้ง 2 ใบด้วย Loop นับจำนวน',
+  h:'Loop ใหญ่นับ 2 ครั้ง: [หมุนขวาจนเจอกล่อง → หนีบ → หมุนซ้ายจนถึงจุดเก็บของสีนั้น → วาง → ยกขึ้น] · ใช้ “หมุนถึงจุดเก็บของกล่องที่ถือ?” หรือจะแตกทางด้วย “กล่องที่ถือเป็นสีแดง?” ก็ได้ · เซนเซอร์ไม่นับกล่องที่วางบนจุด A/C แล้ว',
+  pal:['start','end','s1L','s1R','s2Up','s2Dn','s3Ext','s4Dn','s4Up','s5Grip','s5Open','stop','dF','dDest','dK2','dRd','dA','dC'],
+  boxes:[],stage:2,pads:['A','C'],
+  cases:[{red:56,green:16},{red:24,green:72}],
+  setup(c){boxes={red:{phi:c.red},green:{phi:c.green}}},
+  sol:()=>[[['start',440,60],['s3Ext',440,150],['s1R',640,60],['dF',640,144],['stop',640,228],['s2Dn',640,304],['s4Dn',640,380],['s5Grip',640,456],['s2Up',640,532],['s1L',640,620],['dDest',640,716],['stop',840,150],['s2Dn',840,228],['s5Open',840,306],['s2Up',840,384],['dK2',840,472],['end',840,570]],
+   [[0,'out',1],[1,'out',2],[2,'out',3],[3,'yes',4],[3,'no',2],[4,'out',5],[5,'out',6],[6,'out',7],[7,'out',8],[8,'out',9],[9,'out',10],[10,'yes',11],[10,'no',9],[11,'out',12],[12,'out',13],[13,'out',14],[14,'out',15],[15,'yes',16],[15,'no',2]]]}
+
 ];
 let lvl=0,store=[],passed=Array(LV.length).fill(false);
+const caseDone=LV.map(()=>[]);let cnt={},stats={rel:0};
+function touched(){caseDone[lvl]=[]}
+function curCase(){const L=LV[lvl];if(!L.cases)return 0;const d=caseDone[lvl];for(let i=0;i<L.cases.length;i++)if(!d[i])return i;return 0}
 try{const p=JSON.parse(localStorage.getItem('rbfc_passed')||'[]');p.forEach((v,i)=>{if(i<LV.length)passed[i]=!!v})}catch(e){}
 /* ---------- Flowchart model ---------- */
 let nodes=[],edges=[],nid=1,hl=null,hlBad=false,drag=null,conn=null,running=false,runId=0,actSv=0;
@@ -421,7 +494,7 @@ function render(){
   ${gradient('flowServo4','#ffe0a0','#ffbc73')}
   ${gradient('flowServo5','#ffc1d6','#ff8bb9')}
   <marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L10 4L0 8z" style="fill:var(--edge)"/></marker></defs>
-   <rect x="${PX}" y="0" width="${1000-PX}" height="810" fill="url(#gp)"/>
+   <g id="world" transform="translate(${view.x} ${view.y}) scale(${view.k})"><rect x="-30000" y="-30000" width="60000" height="60000" fill="url(#gp)"/>${ed}${nodes.map(n=>nodeSvg(n)).join('')}<path id="tmp" class="ed" stroke-dasharray="6 5" d=""/></g>
   <rect x="0" y="0" width="${PX}" height="810" style="fill:var(--pal)"/>
   <rect x="0" y="0" width="${PX}" height="36" fill="#e8dafa" opacity=".86"/>
   <line x1="${PX}" y1="0" x2="${PX}" y2="810" style="stroke:var(--line)" stroke-width="2"/>
@@ -430,49 +503,87 @@ function render(){
   <text class="lbl" x="${PX+38}" y="39" style="fill:#775ab8;font-size:14px">✦ พื้นที่ออกแบบ FLOWCHART</text>
   <text class="ph" x="${PX/2}" y="790" text-anchor="middle">🗑 ลากบล็อกกลับมาที่นี่เพื่อลบ</text>
   ${nodes.length?'':`<text class="ph" x="660" y="400" text-anchor="middle" style="font-size:15px;fill:#ad9cc6">✨ ลากบล็อกจากด้านซ้ายมาวางตรงนี้เพื่อเริ่ม!</text>`}
-  ${pal}${ed}${nodes.map(n=>nodeSvg(n)).join('')}<path id="tmp" class="ed" stroke-dasharray="6 5" d=""/>`;
+  ${pal}`;
+  setView();
   $('flowCount').textContent=nodes.length+' บล็อก · '+edges.length+' เส้น';
 }
 /* ---------- interaction ---------- */
 function pt(e){const p=fc.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(fc.getScreenCTM().inverse());return [q.x,q.y]}
 function hitNode(x,y,ex){let b=null,bd=1e9;for(const n of nodes){if(n.id===ex||n.k==='start')continue;if(Math.abs(x-n.x)<=n.w/2+14&&Math.abs(y-n.y)<=n.h/2+14){const d=Math.hypot(x-n.x,y-n.y);if(d<bd){bd=d;b=n}}}return b}
+/* ---------- Infinite workspace: pan / zoom / interaction ---------- */
+const view={x:0,y:0,k:1},ptrs=new Map();let pan=null,pinch=null;
+const toW=(sx,sy)=>[(sx-view.x)/view.k,(sy-view.y)/view.k];
+function setView(){const w=$('world');if(w)w.setAttribute('transform',`translate(${view.x} ${view.y}) scale(${view.k})`);$('zoomLbl').textContent=Math.round(view.k*100)+'%'}
+function zoomAt(sx,sy,k2){k2=Math.max(.25,Math.min(2.5,k2));const wx=(sx-view.x)/view.k,wy=(sy-view.y)/view.k;view.k=k2;view.x=sx-wx*k2;view.y=sy-wy*k2;setView()}
+function fitView(){
+  if(!nodes.length){view.x=0;view.y=0;view.k=1;setView();return}
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;nodes.forEach(n=>{x0=Math.min(x0,n.x-n.w/2);x1=Math.max(x1,n.x+n.w/2);y0=Math.min(y0,n.y-n.h/2);y1=Math.max(y1,n.y+n.h/2)});
+  const aw=1000-PX-60,ah=810-60,k=Math.max(.25,Math.min(1,aw/(x1-x0),ah/(y1-y0)));
+  view.k=k;view.x=PX+30+(aw-(x1-x0)*k)/2-x0*k;view.y=30+(ah-(y1-y0)*k)/2-y0*k;setView()}
+function ensureVisible(n){const sx=n.x*view.k+view.x,sy=n.y*view.k+view.y;if(sx<PX+70||sx>930||sy<50||sy>760){view.x=(PX+1000)/2-n.x*view.k;view.y=405-n.y*view.k;setView()}}
+$('zin').onclick=()=>zoomAt(PX+(1000-PX)/2,405,view.k*1.2);
+$('zout').onclick=()=>zoomAt(PX+(1000-PX)/2,405,view.k/1.2);
+$('zfit').onclick=fitView;
+fc.addEventListener('wheel',e=>{
+  const [sx,sy]=pt(e);if(sx<PX)return;e.preventDefault();
+  if(e.ctrlKey||e.metaKey)zoomAt(sx,sy,view.k*Math.exp(-e.deltaY*.01));
+  else{const f=1000/(fc.clientWidth||1000);view.x-=e.deltaX*f;view.y-=e.deltaY*f;setView()}
+},{passive:false});
 fc.addEventListener('pointerdown',e=>{
-  if(running)return;
-  const t=e.target,[x,y]=pt(e);
+  const [sx,sy]=pt(e);ptrs.set(e.pointerId,[sx,sy]);
+  if(ptrs.size===2){
+    drag=null;conn=null;pan=null;const v=[...ptrs.values()];
+    pinch={d:Math.hypot(v[0][0]-v[1][0],v[0][1]-v[1][1])||1,k:view.k};pinch.wx=((v[0][0]+v[1][0])/2-view.x)/view.k;pinch.wy=((v[0][1]+v[1][1])/2-view.y)/view.k;
+    render();fc.setPointerCapture(e.pointerId);return}
+  const t=e.target,[x,y]=toW(sx,sy);
   const port=t.closest('[data-port]'),ed=t.closest('[data-edge]'),pal=t.closest('[data-pal]'),nd=t.closest('[data-id]');
+  const startPan=()=>{if(sx>=PX){pan={sx,sy,vx:view.x,vy:view.y};fc.setPointerCapture(e.pointerId);e.preventDefault()}};
+  if(running){if(!pal)startPan();return}
   if(port){conn={from:+nd.dataset.id,port:port.dataset.port}}
-  else if(ed){edges.splice(+ed.dataset.edge,1);render();return}
+  else if(ed){edges.splice(+ed.dataset.edge,1);touched();render();return}
   else if(pal){const k=pal.dataset.pal;
     if(k==='start'&&nodes.some(n=>n.k==='start')){say('มีบล็อก Start อยู่แล้ว 1 อัน','bad');return}
-    const n=mkNode(k,x,y);nodes.push(n);drag={n,dx:0,dy:0};render()}
+    const n=mkNode(k,x,y);nodes.push(n);drag={n,dx:0,dy:0};touched();render()}
   else if(nd){const n=N(+nd.dataset.id);drag={n,dx:n.x-x,dy:n.y-y};nodes.splice(nodes.indexOf(n),1);nodes.push(n);render()}
-  else return;
+  else{startPan();return}
   fc.setPointerCapture(e.pointerId);e.preventDefault();
 });
 fc.addEventListener('pointermove',e=>{
-  const [x,y]=pt(e);
-  if(drag){drag.n.x=Math.max(30,Math.min(985,x+drag.dx));drag.n.y=Math.max(25,Math.min(790,y+drag.dy));render()}
+  const [sx,sy]=pt(e);if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,[sx,sy]);
+  if(pinch&&ptrs.size>=2){
+    const v=[...ptrs.values()],d=Math.hypot(v[0][0]-v[1][0],v[0][1]-v[1][1])||1,cx=(v[0][0]+v[1][0])/2,cy=(v[0][1]+v[1][1])/2,k=Math.max(.25,Math.min(2.5,pinch.k*d/pinch.d));
+    view.k=k;view.x=cx-pinch.wx*k;view.y=cy-pinch.wy*k;setView();return}
+  if(pan){view.x=pan.vx+(sx-pan.sx);view.y=pan.vy+(sy-pan.sy);setView();return}
+  if(drag||conn){ // auto-scroll when the pointer is near the edge of the workspace
+    const m=22;let dx=0,dy=0;if(sx>1000-m)dx=-16;if(sy>810-m)dy=-16;if(sy<m)dy=16;
+    if(dx||dy){view.x+=dx;view.y+=dy;setView()}}
+  const [x,y]=toW(sx,sy);
+  if(drag){drag.n.x=x+drag.dx;drag.n.y=y+drag.dy;render()}
   else if(conn){const t=hitNode(x,y,conn.from);if((t?t.id:0)!==(conn.t||0)){conn.t=t?t.id:0;render()}
     const a=N(conn.from);$('tmp').setAttribute('d',rp(route({port:conn.port},a,t||{x,y,w:0,h:0}),9))}
 });
+function endPtr(e){ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null}
 fc.addEventListener('pointerup',e=>{
-  if(drag){const n=drag.n;if(n.x<PX){nodes=nodes.filter(m=>m!==n);edges=edges.filter(g=>g.from!==n.id&&g.to!==n.id)}
-    else n.x=Math.max(PX+n.w/2+4,n.x);drag=null;render()}
-  if(conn){const [ux,uy]=pt(e),t=hitNode(ux,uy,conn.from);
-    if(t&&t.k!=='start'){edges=edges.filter(g=>!(g.from===conn.from&&g.port===conn.port));edges.push({from:conn.from,port:conn.port,to:t.id})}
+  const [sx,sy]=pt(e);endPtr(e);
+  if(pan){pan=null;return}
+  if(drag){const n=drag.n;if(sx<PX){touched();nodes=nodes.filter(m=>m!==n);edges=edges.filter(g=>g.from!==n.id&&g.to!==n.id)}drag=null;render()}
+  if(conn){const [x,y]=toW(sx,sy),t=hitNode(x,y,conn.from);
+    if(t&&t.k!=='start'){touched();edges=edges.filter(g=>!(g.from===conn.from&&g.port===conn.port));edges.push({from:conn.from,port:conn.port,to:t.id})}
     conn=null;render()}
 });
+fc.addEventListener('pointercancel',e=>{endPtr(e);pan=null;drag=null;conn=null;render()});
 /* ---------- Original gameplay and FK, now rendered as a real GLB robot in 3D ---------- */
 const DG=Math.PI/180,SHZ=108,UL=105,FL=95,GL=46,BR=150;
 const POSE=(()=>{const w=[BR,20+GL],dx=w[0],dz=w[1]-SHZ,d=Math.hypot(dx,dz),al=Math.acos((UL*UL+d*d-FL*FL)/(2*UL*d)),a2=(Math.atan2(dx,dz)-al)/DG,e=[UL*Math.sin(a2*DG),SHZ+UL*Math.cos(a2*DG)],f=Math.atan2(w[0]-e[0],w[1]-e[1])/DG;return{a2,a3:f-a2,a4:180-f}})();
 const UP=38,FOLD=120,A4UP=-35;
 let R,boxes,holding,order;
-function resetState(){R={phi:0,a2:UP,a3:FOLD,a4:A4UP,g:0,cs:22};boxes={};LV[lvl].boxes.forEach(n=>boxes[n]={phi:n==='red'?0:G_});holding=null;order=[]}
+function resetState(){R={phi:0,a2:UP,a3:FOLD,a4:A4UP,g:0,cs:22};boxes={};LV[lvl].boxes.forEach(n=>boxes[n]={phi:n==='red'?0:G_});holding=null;order=[];cnt={};stats={rel:0};const L=LV[lvl];if(L.setup)L.setup(L.cases?L.cases[curCase()]:null)}
 function fkOf(q){const t1=(q.a2+q.a3)*DG,t2=(q.a2+q.a3+q.a4)*DG,e=[UL*Math.sin(q.a2*DG),SHZ+UL*Math.cos(q.a2*DG)],w=[e[0]+FL*Math.sin(t1),e[1]+FL*Math.cos(t1)],t=[w[0]+GL*Math.sin(t2),w[1]+GL*Math.cos(t2)];return{e,w,t}}
 function draw(){
   if(R){
     $('servoReadout').innerHTML=`<span>Servo 1 <strong>${R.phi.toFixed(0)}°</strong></span><span>Servo 2 <strong>${R.a2.toFixed(0)}°</strong></span><span>Servo 3 <strong>${R.a3.toFixed(0)}°</strong></span><span>Servo 4 <strong>${R.a4.toFixed(0)}°</strong></span><span>Servo 5 <strong>${R.g>0.5?'ปิด':'เปิด'}</strong></span>`;
-    if(typeof window.updateRobot3D==='function')window.updateRobot3D(R,boxes,holding,lvl,actSv);
+    window.extraPads=LV[lvl].pads||null;
+    if(typeof window.updateRobot3D==='function')window.updateRobot3D(R,boxes,holding,LV[lvl].stage!==undefined?LV[lvl].stage:lvl,actSv);
   }
 }
 window.reDrawArm=draw;
@@ -493,7 +604,7 @@ function li(t){
   // รายการใหม่อยู่บนสุด จึงไม่เลื่อนหน้าหรือรายการตามคำสั่งขณะ Run
   $('log').scrollTop=0;
 } 
-function resetScene(){runId++;running=false;hl=null;hlBad=false;actSv=0;runStepNumber=0;resetState();$('log').innerHTML='';$('currentCommand').textContent='▶ กด “เริ่มทำงาน” เพื่อทดลอง Flowchart';$('runStep').textContent='พร้อมเริ่ม';$('next').hidden=true;say('ลากบล็อกมาต่อกันเป็นผังงาน เริ่มจาก “Start” และจบที่ “End”');render();draw()}
+function resetScene(){runId++;running=false;hl=null;hlBad=false;actSv=0;runStepNumber=0;resetState();$('log').innerHTML='';$('currentCommand').textContent='▶ กด “เริ่มทำงาน” เพื่อทดลอง Flowchart';$('runStep').textContent='พร้อมเริ่ม';$('next').hidden=true;say('ลากบล็อกมาต่อกันเป็นผังงาน เริ่มจาก “Start” และจบที่ “End”'+(LV[lvl].cases?' · กรณีทดสอบที่ '+(curCase()+1)+'/'+LV[lvl].cases.length:''));render();draw()}
 /* ---------- Execute ---------- */
 async function arm(o,D,id){const q={...R,...o};if(fkOf(q).t[1]<8)return 'ปลายแขนชนพื้น! ท่านี้แขนกลต่ำเกินไป';await to(o,D,id)}
 async function act(n,id){
@@ -518,9 +629,13 @@ async function act(n,id){
   if(k==='s5Open'){
     if(!holding){await to({g:0},350,id);return}
     if(fkOf(R).t[1]>32)return 'วางกล่องกลางอากาศ! ต้องก้มแขนลงให้ถึงพื้นก่อน';
-    boxes[holding].phi=R.phi;holding=null;await to({g:0},350,id)}
+    boxes[holding].phi=R.phi;holding=null;stats.rel++;await to({g:0},350,id)}
 }
-const cond={dT:()=>Math.abs(R.phi-T1)<4,dA:()=>Math.abs(R.phi-A_)<4,dG:()=>!!boxes.green&&Math.abs(R.phi-boxes.green.phi)<4,dB:()=>Math.abs(R.phi-B_)<4,dM2:()=>!!boxes.green&&Math.abs(R.phi-boxes.green.phi)<4};
+const cond={dT:()=>Math.abs(R.phi-T1)<4,dA:()=>Math.abs(R.phi-A_)<4,dG:()=>!!boxes.green&&Math.abs(R.phi-boxes.green.phi)<4,dB:()=>Math.abs(R.phi-B_)<4,dM2:()=>!!boxes.green&&Math.abs(R.phi-boxes.green.phi)<4,
+ dH:()=>!!holding,dRd:()=>holding==='red',dC:()=>Math.abs(R.phi-C_)<4,dO:()=>Math.abs(R.phi)<4,
+ dF:()=>Object.keys(boxes).some(n=>holding!==n&&Math.abs(boxes[n].phi-R.phi)<4&&!PADS.some(p=>Math.abs(boxes[n].phi-p)<4)),
+ dDest:()=>!!holding&&Math.abs(R.phi-(holding==='red'?A_:C_))<4,
+ dK2:n=>{cnt[n.id]=(cnt[n.id]||0)+1;return cnt[n.id]>=2},dK3:n=>{cnt[n.id]=(cnt[n.id]||0)+1;return cnt[n.id]>=3}};
 function evalEnd(){
   if(lvl===0)return Math.abs(R.phi-T1)<4?[1,'ปลายแขนอยู่เหนือดาวแล้ว']:[0,'ยังไม่ถึงดาว ⭐ — ผังจบก่อนที่ Servo1 จะหมุนถึงเป้าหมาย'];
   if(lvl===1){const z=fkOf(R).t[1];if(holding==='red'&&z>=60)return[1,'หนีบกล่องสีแดงและยกขึ้นจากพื้นสำเร็จ'];
@@ -535,7 +650,14 @@ function evalEnd(){
      if(ok1&&ok2&&!holding&&order[0]==='red'&&order[1]==='green')return [1,'ติดตั้งชิ้นงาน GLB ทั้งสองชิ้นสำเร็จ ตามลำดับ A แล้ว B'];
      return [0,'ยังไม่ผ่านงานก่อสร้าง: ต้องวางชิ้นงาน 1 ที่ A และชิ้นงาน 2 ที่ B ตามลำดับโดยปล่อยมือจับ'];
    }
-   const okR=Math.abs(boxes.red.phi-A_)<4,okG=Math.abs(boxes.green.phi-B_)<4;
+   const at=(n,p)=>!!boxes[n]&&Math.abs(boxes[n].phi-p)<4;
+    if(lvl===5){const a=at('red',B_),b=at('green',A_);if(a&&b&&!holding&&order[0]==='red'&&order[1]==='green')return[1,'กล่องแดงอยู่ที่จุด B และกล่องเขียวอยู่ที่จุด A ตามลำดับ'];return[0,'ยังไม่ตรงโจทย์: '+(a?'':'กล่องแดงต้องอยู่ที่จุด B · ')+(b?'':'กล่องเขียวต้องอยู่ที่จุด A · ')+(a&&b?'ลำดับไม่ถูกต้อง ต้องหยิบกล่องแดงก่อน':'')]}
+    if(lvl===6||lvl===7){if(at('red',A_)&&!holding)return[1,'นำกล่องสีแดงไปวางที่จุด A ได้'];return[0,'ยังไม่สำเร็จ: กล่องสีแดงต้องถูกวางที่จุด A และมือจับต้องปล่อยแล้ว']}
+    if(lvl===8){const c=LV[8].cases[curCase()].c;if(!holding&&at(c,c==='red'?A_:B_))return[1,'คัดแยกกล่องสี'+(c==='red'?'แดงไปจุด A':'เขียวไปจุด B')+'ถูกต้อง'];return[0,'กรณีนี้กล่องเป็นสี'+(c==='red'?'แดง ต้องไปวางที่จุด A':'เขียว ต้องไปวางที่จุด B')+' และต้องปล่อยมือจับ']}
+    if(lvl===9){const a=at('red',A_),b=at('green',B_);if(a&&b&&!holding&&order[0]==='red'&&order[1]==='green')return[1,'นำกล่องแดงไป A และกล่องเขียวไป B ตามลำดับ'];return[0,'ยังไม่ตรงโจทย์: '+(a?'':'กล่องแดงต้องอยู่ที่จุด A · ')+(b?'':'กล่องเขียวต้องอยู่ที่จุด B · ')+(a&&b?'ต้องหยิบกล่องแดงก่อนกล่องเขียว':'')]}
+    if(lvl===10){if(at('red',0)&&!holding&&stats.rel===6)return[1,'ครบ 3 รอบ กล่องกลับมาที่จุดเริ่มต้น O'];return[0,'ต้องทำครบ 3 รอบ (วางทั้งหมด 6 ครั้ง) และให้กล่องอยู่ที่จุด O ตอนจบ — ตอนนี้วางไป '+stats.rel+' ครั้ง']}
+    if(lvl===11){const a=at('red',A_),b=at('green',C_);if(a&&b&&!holding&&stats.rel===2)return[1,'เก็บกล่องแดงที่จุด A และกล่องเขียวที่จุด C ครบทั้ง 2 ใบ'];return[0,'ยังไม่ตรงโจทย์: '+(a?'':'กล่องแดงต้องอยู่ที่จุด A · ')+(b?'':'กล่องเขียวต้องอยู่ที่จุด C · ')+(holding?'มือจับยังถือกล่องอยู่':'')]}
+    const okR=Math.abs(boxes.red.phi-A_)<4,okG=Math.abs(boxes.green.phi-B_)<4;
   if(okR&&okG&&!holding&&order[0]==='red'&&order[1]==='green')return[1,'กล่องแดงอยู่ที่จุด A และกล่องเขียวอยู่ที่จุด B ตามลำดับที่โจทย์กำหนด'];
   if(okR&&okG)return[0,'กล่องอยู่ถูกที่แล้ว แต่ลำดับไม่ตรงโจทย์ — ต้องหยิบกล่องสีแดงก่อน'];
   return[0,'ผังงานทำงานถึง End แล้ว แต่ยังไม่ตรงโจทย์: '+(okR?'':'กล่องแดงไม่ได้อยู่ที่จุด A ')+(okG?'':'กล่องเขียวไม่ได้อยู่ที่จุด B')];
@@ -546,18 +668,18 @@ async function run(){
    const missing=required.filter(kind=>!window.customGLBLoaded?.[kind]);
    if(missing.length){say('กรุณาอัปโหลดโมเดล GLB ของนักเรียนก่อนเริ่มด่านนี้: '+missing.map(k=>k==='red'?'ชิ้นงาน 1':'ชิ้นงาน 2').join(' และ '),'bad');return}
    resetScene();
-   const id=runId,st=nodes.filter(n=>n.k==='start');
+   const id=runId,ci=curCase(),st=nodes.filter(n=>n.k==='start');
   if(st.length!==1){say('ต้องมีบล็อก Start 1 อัน','bad');return}
   running=true;let cur=st[0],steps=0,reached=false;
   const fail=(t,n)=>{hl=n.id;hlBad=true;actSv=0;render();draw();$('runStep').textContent='ต้องแก้ไข';$('currentCommand').textContent='❌ '+t;say('❌ '+t,'bad');running=false};
   while(cur){
     if(id!==runId)return;
-    hl=cur.id;hlBad=false;actSv=KD[cur.k].v||0;render();draw();
+    ensureVisible(cur);hl=cur.id;hlBad=false;actSv=KD[cur.k].v||0;render();draw();
     if(++steps>200){fail('ทำงานวนซ้ำนานเกินไป ตรวจสอบเส้นลูกศรและเงื่อนไขอีกครั้ง',cur);return}
     li(cur.l);
     let port='out';
     if(cur.k==='end'){await sleep(400);reached=true;break}
-    if(cur.s==='decision'){const ok=cond[cur.k]();port=ok?'yes':'no';say('🔷 '+cur.l.replace('\n','')+' → '+(ok?'ใช่':'ไม่')+'  (Servo1 = '+R.phi.toFixed(0)+'°)');await sleep(280)}
+    if(cur.s==='decision'){const ok=cond[cur.k](cur);port=ok?'yes':'no';say('🔷 '+cur.l.replace('\n','')+' → '+(ok?'ใช่':'ไม่')+'  (Servo1 = '+R.phi.toFixed(0)+'°)');await sleep(280)}
     else if(cur.k!=='start'){const r=await act(cur,id);if(id!==runId)return;if(r){fail(r,cur);return}}
     else await sleep(400);
     const e=edges.find(g=>g.from===cur.id&&g.port===port);
@@ -567,23 +689,24 @@ async function run(){
   hl=null;actSv=0;render();draw();running=false;
   if(!reached)return;
   const [ok,msg]=evalEnd();
+  if(ok&&LV[lvl].cases){caseDone[lvl][ci]=true;if(caseDone[lvl].filter(Boolean).length<LV[lvl].cases.length){say('✅ ผ่านกรณีทดสอบที่ '+(ci+1)+'/'+LV[lvl].cases.length+' แล้ว — '+msg+' · กด “เริ่มทำงาน” อีกครั้งเพื่อทดสอบกรณีถัดไป (ผังต้องใช้ได้ทุกกรณี)','ok');$('runStep').textContent='ผ่านกรณี '+(ci+1)+'/'+LV[lvl].cases.length;return}}
   if(ok){passed[lvl]=true;try{localStorage.setItem('rbfc_passed',JSON.stringify(passed))}catch(e){}
-    say('🎉 ผ่านด่านแล้ว! '+msg+' (ผังนี้ใช้ '+nodes.length+' บล็อก)','ok');tabs();$('next').hidden=lvl>=LV.length-1;if(lvl>=LV.length-1)say('🏆 ผ่านครบทั้ง 5 ด่าน! '+msg+' (ผังนี้ใช้ '+nodes.length+' บล็อก)','ok')}
-  else say(msg,'bad');
+    say('🎉 ผ่านด่านแล้ว! '+msg+' (ผังนี้ใช้ '+nodes.length+' บล็อก)','ok');tabs();$('next').hidden=lvl>=LV.length-1;if(lvl>=LV.length-1)say('🏆 ผ่านครบทั้ง '+LV.length+' ด่าน! '+msg+' (ผังนี้ใช้ '+nodes.length+' บล็อก)','ok')}
+  else say(msg+(LV[lvl].cases?' (กรณีทดสอบที่ '+(ci+1)+'/'+LV[lvl].cases.length+')':''),'bad');
 }
 function build(def){const[nd,ed]=def();nodes=[];edges=[];const ns=nd.map(([k,x,y])=>{const n=mkNode(k,x,y);nodes.push(n);return n});ed.forEach(([a,p,b])=>edges.push({from:ns[a].id,port:p,to:ns[b].id}))}
-function solution(){resetScene();build(LV[lvl].sol);render();say('นี่คือตัวอย่างเฉลย — กด “เริ่มทำงาน” เพื่อดูแขนกลทำงาน')}
+function solution(){touched();resetScene();build(LV[lvl].sol);render();fitView();say('นี่คือตัวอย่างเฉลย — กด “เริ่มทำงาน” เพื่อดูแขนกลทำงาน')}
 /* ---------- Levels UI ---------- */
 function unlocked(i){return i===0||passed[i-1]||unl[i]}
 const unl=Array(LV.length).fill(false);unl[0]=true;
 function tabs(){$('tabs').innerHTML=LV.map((l,i)=>`<button data-lv="${i}" class="${i===lvl?'on':''}" ${unlocked(i)?'':'data-lock="1"'}>${unlocked(i)?(passed[i]?'✅ ':''):'🔒 '}ด่าน ${i+1}</button>`).join('')}
 function setLevel(i){store[lvl]={nodes,edges,nid};lvl=i;const s=store[i]||{nodes:[],edges:[],nid:1};nodes=s.nodes;edges=s.edges;nid=s.nid;
   $('mt').textContent=LV[i].t;$('mx').textContent=LV[i].m;$('hn').textContent='💡 '+LV[i].h;
-  $('customAssetPanel').hidden=i<3;
+  $('customAssetPanel').hidden=!(i===3||i===4);
   $('uploadTwoField').hidden=i!==4;
   $('assetStageTag').textContent=i===4?'ด่าน 5 · 2 ชิ้นงาน':'ด่าน 4 · 1 ชิ้นงาน';
-  document.body.classList.toggle('construction-stage',i>=3);
-  tabs();resetScene()}
+  document.body.classList.toggle('construction-stage',i===3||i===4);
+  tabs();resetScene();fitView()}
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||running)return;const i=+b.dataset.lv;
   if(b.dataset.lock){askPin('unlock',i)}else if(i!==lvl)setLevel(i)});
 $('next').onclick=()=>setLevel(lvl+1);
@@ -595,7 +718,7 @@ $('sol').onclick=()=>askPin('sol');$('pk').onclick=okPin;$('pc').onclick=()=>{pi
 pv.addEventListener('keydown',e=>{if(e.key==='Enter')okPin();if(e.key==='Escape')pin.hidden=true});
 window.flowIsRunning=()=>running;
 $('run').onclick=run;$('reset').onclick=resetScene;
-$('clear').onclick=()=>{nodes=[];edges=[];resetScene()};
+$('clear').onclick=()=>{nodes=[];edges=[];touched();resetScene();fitView()};
 // File picker buttons stay responsive even if the 3D library cannot initialize.
 window.glbLoaderReady=false;
 for(const [buttonId,inputId,statusId] of [['uploadBtnOne','uploadOne','assetStatusOne'],['uploadBtnTwo','uploadTwo','assetStatusTwo']]){
@@ -753,6 +876,8 @@ tabs();resetScene();
     for(let i=0;i<3;i++)block(16,10,76,198,6+i*11,-185,steel);
     const siteSource1=makePad(0,150,0xd6a027,'1');
     const siteSource2=makePad(150*Math.sin(48*Math.PI/180),150*Math.cos(48*Math.PI/180),0xc48c32,'2');
+    const padC=makePad(150*Math.sin(-104*Math.PI/180),150*Math.cos(-104*Math.PI/180),0x4a7bd6,'C');
+    const padO=makePad(0,150,0x8d7bbf,'O');
     
 
     function resize() {
@@ -899,6 +1024,7 @@ tabs();resetScene();
          ground.visible=stage<3;grid.visible=stage<3;ring.visible=stage<3;
          siteSource1.setVisible(stage===3||stage===4);
          siteSource2.setVisible(stage===4);
+          {const ep=window.extraPads;if(ep){pointA.setVisible(ep.includes('A'));pointB.setVisible(ep.includes('B'));padC.setVisible(ep.includes('C'));padO.setVisible(ep.includes('O'))}else{padC.setVisible(false);padO.setVisible(false)}}
         badges.forEach((badge,i)=>{
           joints[i].getWorldPosition(worldPoint);
           badge.position.copy(worldPoint).add(new THREE.Vector3(i===0?52:27,i===4?19:10,0));
