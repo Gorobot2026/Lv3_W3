@@ -48,8 +48,14 @@ button.go{background:#2e8b57;border-color:#2e8b57;color:#fff;font-weight:700}
 #msg.ok{background:var(--okbg);color:var(--okc)}#msg.bad{background:var(--badbg);color:var(--badc)}
 ol#log{margin:6px 0 0;padding-left:22px;font-size:13px;color:var(--mut);max-height:140px;overflow:auto}
 .legend{font-size:12px;color:var(--mut);margin-top:8px}
-#pin{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
-#pin[hidden]{display:none}
+#pin,#ang{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+#pin[hidden],#ang[hidden]{display:none}
+#angE{min-height:20px;margin:6px 0;color:var(--badc);font-size:13px;text-align:center}
+.lab{border:1px solid var(--line);border-radius:10px;background:var(--pal);padding:8px 10px;margin:0 0 9px;font-size:12px}
+.lab b.t{display:block;color:var(--acc);margin-bottom:4px}
+.lab .lr{display:grid;grid-template-columns:62px 1fr 48px;gap:6px;align-items:center;margin:3px 0}
+.lab input[type=range]{width:100%}.lab output{font-variant-numeric:tabular-nums;font-weight:800;text-align:right;color:var(--ink)}
+#labStat{margin-top:5px;color:var(--mut);line-height:1.5}
 .dlg{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:20px;width:100%;max-width:320px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
 .dlg h3{margin:0 0 4px;font-size:18px}.dlg p{margin:0 0 12px;color:var(--mut);font-size:14px}
 .dlg input{width:100%;font:inherit;font-size:22px;letter-spacing:8px;text-align:center;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
@@ -241,9 +247,9 @@ body.construction-stage .runtime-title{background:linear-gradient(90deg,#98621c,
     <div class="brand-copy">
       <span class="eyebrow">ROBOTICS • CODING • CREATIVE PLAY</span>
       <h1>🤖 Robot Arm <em>Flowchart Quest</em></h1>
-      <p>ลากบล็อก · ต่อผังงาน · ทดลองแขนกล 3D · ปลดล็อกภารกิจสร้างสรรค์ทั้ง 12 ด่าน</p>
+      <p>ลากบล็อก · ต่อผังงาน · ทดลองแขนกล 3D · ปลดล็อกภารกิจสร้างสรรค์ทั้ง 14 ด่าน</p>
     </div>
-    <span class="quest-tag">✦ 12 LEVELS</span>
+    <span class="quest-tag">✦ 14 LEVELS</span>
   </div>
 </header>
 <main>
@@ -291,6 +297,7 @@ body.construction-stage .runtime-title{background:linear-gradient(90deg,#98621c,
        </div>
        <div class="arm-buttons"><button id="cameraHome" type="button">⌂ มุมมองเริ่มต้น</button><button id="cameraSpin" type="button" aria-pressed="false">⟳ หมุนอัตโนมัติ</button></div>
        <div class="servo-readout" id="servoReadout" aria-live="off"></div>
+       <div id="lab" class="lab" hidden></div>
        <div class="runtime-panel" aria-live="off">
          <div class="runtime-title"><span>⚡ กำลังทำงานตามผัง</span><span id="runStep" class="run-step">พร้อมเริ่ม</span></div>
          <div id="currentCommand" class="current-command">▶ กด “เริ่มทำงาน” เพื่อทดลอง Flowchart</div>
@@ -303,6 +310,7 @@ body.construction-stage .runtime-title{background:linear-gradient(90deg,#98621c,
 
   </section>
 </main>
+<div id="ang" hidden><div class="dlg" role="dialog" aria-modal="true" aria-label="ตั้งมุม Servo"><h3 id="angT"></h3><p id="angP"></p><input id="angV" type="number" step="1" inputmode="decimal"><div id="angE"></div><div class="row"><button id="angC" type="button">ยกเลิก</button><button class="go" id="angK" type="button">ตกลง</button></div></div></div>
 <div id="pin" hidden><div class="dlg" role="dialog" aria-modal="true" aria-label="ใส่รหัสครู"><h3 id="pth">🔒</h3><p id="ptx"></p><input id="pv" type="password" inputmode="numeric" maxlength="8" autocomplete="off"><div id="pe"></div><div class="row"><button id="pc">ยกเลิก</button><button class="go" id="pk">ตกลง</button></div></div></div>
 
 <script>
@@ -317,7 +325,7 @@ const KD={
  s4Dn:{s:'process',l:'หมุน Servo4\nลงเล็กน้อย',v:4},s4Up:{s:'process',l:'หมุน Servo4\nเงยขึ้น',v:4},
  s5Grip:{s:'process',l:'ควบคุม Servo5\nเพื่อหนีบชิ้นงาน',v:5},s5Open:{s:'process',l:'ควบคุม Servo5\nเพื่อปล่อยชิ้นงาน',v:5},
  stop:{s:'process',l:'หยุดหมุน',v:1},
- dT:{s:'decision',l:'หมุนถึง\nเป้าหมาย?'},dA:{s:'decision',l:'หมุนถึง\nจุด A?'},dG:{s:'decision',l:'หมุนถึง\nกล่องสีเขียว?'},dB:{s:'decision',l:'หมุนถึง\nจุด B?'},dM2:{s:'decision',l:'ถึงชิ้นงาน\nชิ้นที่ 2?'},dH:{s:'decision',l:'ถือกล่อง\nอยู่หรือไม่?'},dF:{s:'decision',l:'เจอกล่องที่\nยังไม่เก็บ?'},dRd:{s:'decision',l:'กล่องที่ถือ\nเป็นสีแดง?'},dC:{s:'decision',l:'หมุนถึง\nจุด C?'},dO:{s:'decision',l:'หมุนถึงจุด\nเริ่มต้น O?'},dK2:{s:'decision',l:'ครบ 2 ใบ\nหรือยัง?'},dK3:{s:'decision',l:'ครบ 3 รอบ\nหรือยัง?'},dDest:{s:'decision',l:'ถึงจุดเก็บของ\nกล่องที่ถือ?'}
+ dT:{s:'decision',l:'หมุนถึง\nเป้าหมาย?'},dA:{s:'decision',l:'หมุนถึง\nจุด A?'},dG:{s:'decision',l:'หมุนถึง\nกล่องสีเขียว?'},dB:{s:'decision',l:'หมุนถึง\nจุด B?'},a1:{s:'process',l:'ตั้งมุม Servo1',v:1,ang:1},a2:{s:'process',l:'ตั้งมุม Servo2',v:2,ang:1},a3:{s:'process',l:'ตั้งมุม Servo3',v:3,ang:1},a4:{s:'process',l:'ตั้งมุม Servo4',v:4,ang:1},a5:{s:'process',l:'ตั้งมุม Servo5',v:5,ang:1},dM2:{s:'decision',l:'ถึงชิ้นงาน\nชิ้นที่ 2?'},dH:{s:'decision',l:'ถือกล่อง\nอยู่หรือไม่?'},dF:{s:'decision',l:'เจอกล่องที่\nยังไม่เก็บ?'},dRd:{s:'decision',l:'กล่องที่ถือ\nเป็นสีแดง?'},dC:{s:'decision',l:'หมุนถึง\nจุด C?'},dO:{s:'decision',l:'หมุนถึงจุด\nเริ่มต้น O?'},dK2:{s:'decision',l:'ครบ 2 ใบ\nหรือยัง?'},dK3:{s:'decision',l:'ครบ 3 รอบ\nหรือยัง?'},dDest:{s:'decision',l:'ถึงจุดเก็บของ\nกล่องที่ถือ?'}
 };
 const COL={terminal:'#8750d7',process:'#40cfb9',decision:'#7c9df8'},HH={terminal:40,process:46,decision:64},PX=336;
 const A_=-56,G_=48,B_=96,T1=48,C_=-104,PADS=[A_,B_,C_];
@@ -422,7 +430,22 @@ const LV=[
   cases:[{red:56,green:16},{red:24,green:72}],
   setup(c){boxes={red:{phi:c.red},green:{phi:c.green}}},
   sol:()=>[[['start',440,60],['s3Ext',440,150],['s1R',640,60],['dF',640,144],['stop',640,228],['s2Dn',640,304],['s4Dn',640,380],['s5Grip',640,456],['s2Up',640,532],['s1L',640,620],['dDest',640,716],['stop',840,150],['s2Dn',840,228],['s5Open',840,306],['s2Up',840,384],['dK2',840,472],['end',840,570]],
-   [[0,'out',1],[1,'out',2],[2,'out',3],[3,'yes',4],[3,'no',2],[4,'out',5],[5,'out',6],[6,'out',7],[7,'out',8],[8,'out',9],[9,'out',10],[10,'yes',11],[10,'no',9],[11,'out',12],[12,'out',13],[13,'out',14],[14,'out',15],[15,'yes',16],[15,'no',2]]]}
+   [[0,'out',1],[1,'out',2],[2,'out',3],[3,'yes',4],[3,'no',2],[4,'out',5],[5,'out',6],[6,'out',7],[7,'out',8],[8,'out',9],[9,'out',10],[10,'yes',11],[10,'no',9],[11,'out',12],[12,'out',13],[13,'out',14],[14,'out',15],[15,'yes',16],[15,'no',2]]]},
+ {t:'ด่าน 13 · ผู้เชี่ยวชาญ: กำหนดองศาเอง (Servo 1–5)',
+  m:'ไม่มีคำสั่งสำเร็จรูปอีกต่อไป! ใช้บล็อก “ตั้งมุม Servo” กำหนดองศาของ Servo ทั้ง 5 ตัวเอง เพื่อหนีบกล่องสีแดงที่จุดเริ่มต้น (0°) แล้วนำไปวางที่จุด A (−56°) ต้องใช้บล็อกตั้งมุมครบทั้ง Servo 1–5',
+  h:'คลิกที่บล็อกเพื่อกรอกองศา · เปิด “🎚 ห้องทดลองมุม” แล้วลองเลื่อน Servo จนปลายมือจับ (r, z) อยู่ที่กล่อง: กล่องอยู่ห่างฐาน r≈150 สูง z≈20 · ก่อนหมุนฐาน (Servo1) ต้องยกแขนให้ปลายมือสูง z ≥ 40 · Servo5: 0° = หนีบสุด, 90° = เปิดกว้าง',
+  pal:['start','end','a1','a2','a3','a4','a5'],
+  boxes:[],stage:2,pads:['A'],lab:true,setup(){boxes={red:{phi:0}}},
+  sol:()=>[[['start',660,60],['a3',660,130,78],['a2',660,200,69],['a4',660,270,33],['a5',660,340,20],['a2',660,410,38],['a1',660,480,-56],['a2',660,550,69],['a5',660,620,90],['a2',660,690,38],['end',660,760]],
+   [0,1,2,3,4,5,6,7,8,9].map(i=>[i,'out',i+1])]},
+ {t:'ด่าน 14 · ยอดนักวิศวกร: ซ้อนกล่อง',
+  m:'กล่องสีแดงวางอยู่ที่จุด A แล้ว (ห่างฐาน r≈150) ส่วนกล่องสีเขียวอยู่ใกล้ฐานกว่า (r≈100, ที่มุมฐาน 48°) ให้หนีบกล่องเขียวไป “วางซ้อนบนกล่องแดง” ที่จุด A โดยกำหนดองศาของ Servo ทั้ง 5 ตัวเอง',
+  h:'ระยะเอื้อมต่างกัน → ต้องหาองศา Servo2–4 ชุดใหม่สำหรับ r≈100 · ตอนวางซ้อน ปลายมือต้องอยู่ที่ r≈150 และสูง z≈60 (ใช้ห้องทดลองมุมดูค่า r, z) · ระวังปลายแขนชนพื้น/ชนฐาน · ต้องใช้ครบทั้ง Servo 1–5',
+  pal:['start','end','a1','a2','a3','a4','a5'],
+  boxes:[],stage:2,pads:['A'],lab:true,setup(){boxes={red:{phi:A_},green:{phi:G_,r:100}}},
+  sol:()=>[[['start',440,60],['a1',440,140,48],['a2',440,220,60],['a3',440,300,114],['a4',440,380,6],['a5',440,460,20],['a2',440,540,38],['a1',440,620,-56],['a3',640,60,83],['a2',640,140,52],['a4',640,220,45],['a5',640,300,90],['a2',640,380,38],['end',640,460]],
+   [0,1,2,3,4,5,6,7,8,9,10,11,12].map(i=>[i,'out',i+1])]}
+
 
 ];
 let lvl=0,store=[],passed=Array(LV.length).fill(false);
@@ -433,7 +456,8 @@ try{const p=JSON.parse(localStorage.getItem('rbfc_passed')||'[]');p.forEach((v,i
 /* ---------- Flowchart model ---------- */
 let nodes=[],edges=[],nid=1,hl=null,hlBad=false,drag=null,conn=null,running=false,runId=0,actSv=0;
 const N=id=>nodes.find(n=>n.id===id);
-const mkNode=(k,x,y)=>{const d=KD[k];return{id:nid++,k,s:d.s,l:d.l,x,y,w:d.s==='decision'?160:150,h:HH[d.s]}};
+const SR={a1:[-170,170,'หมุนฐาน: − = ซ้าย, + = ขวา, 0° = ตรงหน้า'],a2:[0,120,'ไหล่: 0° = ตั้งตรง, ยิ่งมาก = เอนไปข้างหน้า'],a3:[0,150,'ศอก: 0° = เหยียดตรงแนวแขนท่อนบน, ยิ่งมาก = พับลงไปข้างหน้า'],a4:[-90,90,'ข้อมือ: 0° = ตรงแนวแขนท่อนล่าง, + = ก้มลง'],a5:[0,90,'มือจับ: 0° = หนีบสุด, 90° = เปิดกว้าง']};
+const mkNode=(k,x,y)=>{const d=KD[k],n={id:nid++,k,s:d.s,l:d.l,x,y,w:d.s==='decision'?160:150,h:HH[d.s]};if(d.ang){n.ang=null;Object.defineProperty(n,'l',{get(){return d.l+'\n= '+(this.ang==null?'?':this.ang)+'°'},enumerable:true})}return n};
 function shape(s,w,h,fill){
   if(s==='terminal')return `<rect class="sh" x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="${h/2}" fill="${fill}"/>`;
   if(s==='process')return `<rect class="sh" x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="3" fill="${fill}"/>`;
@@ -482,7 +506,7 @@ function render(){
   let ed='';
   edges.forEach((e,i)=>{const a=N(e.from),b=N(e.to);if(!a||!b)return;const d=rp(route(e,a,b),9);
     ed+=`<path data-edge="${i}" d="${d}" stroke="transparent" stroke-width="16" fill="none" style="cursor:pointer"/><path class="ed" d="${d}" marker-end="url(#ah)"/>`});
-   let pal='';LV[lvl].pal.forEach((k,i)=>{const d=KD[k];pal+=nodeSvg({id:0,k,s:d.s,l:d.l,x:85+(i%2)*162,y:64+Math.floor(i/2)*84,w:d.s==='decision'?160:150,h:HH[d.s]},true)});
+   let pal='';LV[lvl].pal.forEach((k,i)=>{const d=KD[k];pal+=nodeSvg({id:0,k,s:d.s,l:d.ang?d.l+'\n= ? °':d.l,x:85+(i%2)*162,y:64+Math.floor(i/2)*84,w:d.s==='decision'?160:150,h:HH[d.s]},true)});
   const gradient=(id,a,b)=>`<linearGradient id="${id}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${a}"/><stop offset="100%" stop-color="${b}"/></linearGradient>`;
   fc.innerHTML=`<defs><pattern id="gp" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="var(--grid)" stroke-width="1"/><circle cx="0" cy="0" r="1" fill="#cbbce6"/></pattern>
   ${gradient('flowTerminal','#9759e4','#713dc2')}
@@ -543,8 +567,8 @@ fc.addEventListener('pointerdown',e=>{
   else if(ed){edges.splice(+ed.dataset.edge,1);touched();render();return}
   else if(pal){const k=pal.dataset.pal;
     if(k==='start'&&nodes.some(n=>n.k==='start')){say('มีบล็อก Start อยู่แล้ว 1 อัน','bad');return}
-    const n=mkNode(k,x,y);nodes.push(n);drag={n,dx:0,dy:0};touched();render()}
-  else if(nd){const n=N(+nd.dataset.id);drag={n,dx:n.x-x,dy:n.y-y};nodes.splice(nodes.indexOf(n),1);nodes.push(n);render()}
+    const n=mkNode(k,x,y);nodes.push(n);drag={n,dx:0,dy:0,sx0:sx,sy0:sy,moved:false,fresh:true};touched();render()}
+  else if(nd){const n=N(+nd.dataset.id);drag={n,dx:n.x-x,dy:n.y-y,sx0:sx,sy0:sy,moved:false,fresh:false};nodes.splice(nodes.indexOf(n),1);nodes.push(n);render()}
   else{startPan();return}
   fc.setPointerCapture(e.pointerId);e.preventDefault();
 });
@@ -558,7 +582,7 @@ fc.addEventListener('pointermove',e=>{
     const m=22;let dx=0,dy=0;if(sx>1000-m)dx=-16;if(sy>810-m)dy=-16;if(sy<m)dy=16;
     if(dx||dy){view.x+=dx;view.y+=dy;setView()}}
   const [x,y]=toW(sx,sy);
-  if(drag){drag.n.x=x+drag.dx;drag.n.y=y+drag.dy;render()}
+  if(drag){if(Math.hypot(sx-drag.sx0,sy-drag.sy0)>5)drag.moved=true;drag.n.x=x+drag.dx;drag.n.y=y+drag.dy;render()}
   else if(conn){const t=hitNode(x,y,conn.from);if((t?t.id:0)!==(conn.t||0)){conn.t=t?t.id:0;render()}
     const a=N(conn.from);$('tmp').setAttribute('d',rp(route({port:conn.port},a,t||{x,y,w:0,h:0}),9))}
 });
@@ -566,7 +590,7 @@ function endPtr(e){ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null}
 fc.addEventListener('pointerup',e=>{
   const [sx,sy]=pt(e);endPtr(e);
   if(pan){pan=null;return}
-  if(drag){const n=drag.n;if(sx<PX){touched();nodes=nodes.filter(m=>m!==n);edges=edges.filter(g=>g.from!==n.id&&g.to!==n.id)}drag=null;render()}
+  if(drag){const n=drag.n;if(sx<PX){touched();nodes=nodes.filter(m=>m!==n);edges=edges.filter(g=>g.from!==n.id&&g.to!==n.id)}const dd=drag;drag=null;render();if(sx>=PX&&KD[n.k].ang&&!running&&(dd.fresh||!dd.moved))openAng(n)}
   if(conn){const [x,y]=toW(sx,sy),t=hitNode(x,y,conn.from);
     if(t&&t.k!=='start'){touched();edges=edges.filter(g=>!(g.from===conn.from&&g.port===conn.port));edges.push({from:conn.from,port:conn.port,to:t.id})}
     conn=null;render()}
@@ -581,12 +605,64 @@ function resetState(){R={phi:0,a2:UP,a3:FOLD,a4:A4UP,g:0,cs:22};boxes={};LV[lvl]
 function fkOf(q){const t1=(q.a2+q.a3)*DG,t2=(q.a2+q.a3+q.a4)*DG,e=[UL*Math.sin(q.a2*DG),SHZ+UL*Math.cos(q.a2*DG)],w=[e[0]+FL*Math.sin(t1),e[1]+FL*Math.cos(t1)],t=[w[0]+GL*Math.sin(t2),w[1]+GL*Math.cos(t2)];return{e,w,t}}
 function draw(){
   if(R){
-    $('servoReadout').innerHTML=`<span>Servo 1 <strong>${R.phi.toFixed(0)}°</strong></span><span>Servo 2 <strong>${R.a2.toFixed(0)}°</strong></span><span>Servo 3 <strong>${R.a3.toFixed(0)}°</strong></span><span>Servo 4 <strong>${R.a4.toFixed(0)}°</strong></span><span>Servo 5 <strong>${R.g>0.5?'ปิด':'เปิด'}</strong></span>`;
+    labSync();
+    $('servoReadout').innerHTML=`<span>Servo 1 <strong>${R.phi.toFixed(0)}°</strong></span><span>Servo 2 <strong>${R.a2.toFixed(0)}°</strong></span><span>Servo 3 <strong>${R.a3.toFixed(0)}°</strong></span><span>Servo 4 <strong>${R.a4.toFixed(0)}°</strong></span><span>Servo 5 <strong>${R.g>0.5?'ปิด':'เปิด'} ${Math.round(90*(1-R.g))}°</strong></span>${tipInfo()}`;
     window.extraPads=LV[lvl].pads||null;
     if(typeof window.updateRobot3D==='function')window.updateRobot3D(R,boxes,holding,LV[lvl].stage!==undefined?LV[lvl].stage:lvl,actSv);
   }
 }
 window.reDrawArm=draw;
+
+/* ---------- Levels 13-14: direct angle control ---------- */
+const SVN={a1:1,a2:2,a3:3,a4:4,a5:5};
+function tipInfo(){if(!LV[lvl]||!LV[lvl].lab)return '';const t=fkOf(R).t;return '<span>ปลายมือ r <strong>'+t[0].toFixed(0)+'</strong> · z <strong>'+t[1].toFixed(0)+'</strong></span>'}
+async function actAng(n,id){
+  const k=n.k,sv=SVN[k],[lo,hi]=SR[k],a=n.ang;
+  if(a==null||isNaN(a))return 'ยังไม่ได้ตั้งมุมของบล็อก “ตั้งมุม Servo'+sv+'” — คลิกที่บล็อกเพื่อกรอกองศา';
+  if(a<lo||a>hi)return 'มุม '+a+'° เกินช่วงที่ Servo'+sv+' ทำได้ ('+lo+'° ถึง '+hi+'°)';
+  const key=['','phi','a2','a3','a4'][sv],cur=sv===5?90*(1-R.g):R[key],D=Math.max(250,Math.min(1500,Math.abs(a-cur)*9));
+  if(sv===1){
+    if(fkOf(R).t[1]<40)return 'แขนกลชนกล่องขณะหมุนฐาน! ต้องยกแขนให้ปลายมือสูงกว่านี้ก่อนหมุน Servo1 (z ≥ 40)';
+    await to({phi:a},D,id);return}
+  if(sv<=4){
+    for(const f of [.25,.5,.75,1]){const q={...R};q[key]=cur+(a-cur)*f;const t=fkOf(q).t;
+      if(t[1]<8)return 'ปลายแขนชนพื้น! ท่าตอนหมุน Servo'+sv+' ไปที่ '+a+'° ต่ำเกินไป ลองปรับมุมของ Servo อื่นก่อน';
+      if(t[0]<60&&t[1]<75)return 'แขนกลชนฐานของตัวเอง! ปรับมุม Servo'+sv+' ใหม่'}
+    await to({[key]:a},D,id);return}
+  const g=1-a/90;
+  if(a<=35){
+    if(holding){await to({g},D,id);return}
+    const t=fkOf(R).t,b=Object.keys(boxes).find(c=>Math.abs(boxes[c].phi-R.phi)<4&&Math.abs(t[0]-(boxes[c].r||BR))<16&&Math.abs(t[1]-(boxes[c].z||20))<14);
+    R.cs=b?22:13;await to({g},D,id);
+    if(!b){await to({g:0},300,id);return 'หนีบไม่โดนกล่อง: ปลายมือจับ (r='+t[0].toFixed(0)+', z='+t[1].toFixed(0)+') ยังไม่อยู่ที่กล่อง — ลองใช้ห้องทดลองมุมหาองศาที่ปลายมืออยู่ตรงกล่อง'}
+    holding=b;order.push(b);return}
+  if(a>=50&&holding){
+    const t=fkOf(R).t,b0=boxes[holding],under=Object.keys(boxes).find(c=>c!==holding&&Math.abs(boxes[c].phi-R.phi)<4&&Math.abs((boxes[c].r||BR)-t[0])<16&&(boxes[c].z||20)<30);
+    if(t[1]<=32)b0.z=20;
+    else if(under&&t[1]>=52&&t[1]<=70)b0.z=60;
+    else return 'วางกล่องกลางอากาศ! ปลายมือ (z='+t[1].toFixed(0)+') ต้องอยู่ที่พื้น หรือพอดีบนกล่องอีกใบ (z≈60)';
+    b0.phi=R.phi;b0.r=t[0];holding=null;stats.rel++;await to({g},D,id);return}
+  await to({g},D,id)
+}
+/* angle editor dialog */
+let angNode=null;
+function openAng(n){angNode=n;const sv=SVN[n.k],r=SR[n.k];$('angT').textContent='ตั้งมุม Servo'+sv;$('angP').textContent=r[2]+' (ช่วง '+r[0]+'° ถึง '+r[1]+'°)';$('angV').value=n.ang==null?'':n.ang;$('angE').textContent='';$('ang').hidden=false;$('angV').focus()}
+function okAng(){const n=angNode,r=SR[n.k],v=parseFloat($('angV').value);
+  if(isNaN(v)){$('angE').textContent='กรุณากรอกตัวเลของศา';return}
+  if(v<r[0]||v>r[1]){$('angE').textContent='ต้องอยู่ระหว่าง '+r[0]+' ถึง '+r[1];return}
+  n.ang=Math.round(v*10)/10;touched();$('ang').hidden=true;render()}
+$('angK').onclick=okAng;$('angC').onclick=()=>{$('ang').hidden=true};
+$('angV').addEventListener('keydown',e=>{if(e.key==='Enter')okAng();if(e.key==='Escape')$('ang').hidden=true});
+/* angle lab: sliders to experiment with all five servos */
+const LABS=[['Servo1','phi',-170,170],['Servo2','a2',0,120],['Servo3','a3',0,150],['Servo4','a4',-90,90],['Servo5','g',0,90]];
+(function(){const L=$('lab');L.innerHTML='<b class="t">🎚 ห้องทดลองมุม (ลองหมุน Servo ก่อนเขียนผัง)</b>'+LABS.map((s,i)=>`<div class="lr"><label for="lab${i}">${s[0]}</label><input type="range" id="lab${i}" min="${s[2]}" max="${s[3]}" step="1" value="0"><output id="labv${i}">0°</output></div>`).join('')+'<div id="labStat"></div>';
+  LABS.forEach((s,i)=>$('lab'+i).addEventListener('input',e=>{if(running)return;const v=+e.target.value;if(s[1]==='g')R.g=1-v/90;else R[s[1]]=v;draw()}))})();
+function labSync(){
+  if(!LV[lvl]||!LV[lvl].lab||!R)return;
+  LABS.forEach((s,i)=>{const el=$('lab'+i),v=s[1]==='g'?90*(1-R.g):R[s[1]];if(document.activeElement!==el)el.value=Math.round(v);$('labv'+i).textContent=Math.round(v)+'°'});
+  const t=fkOf(R).t,hit=Object.keys(boxes).find(c=>Math.abs(boxes[c].phi-R.phi)<4&&Math.abs(t[0]-(boxes[c].r||BR))<16&&Math.abs(t[1]-(boxes[c].z||20))<14);
+  $('labStat').textContent='ปลายมือ r = '+t[0].toFixed(0)+' · z = '+t[1].toFixed(0)+(hit?' ✔ ตรงกับกล่อง'+(hit==='red'?'สีแดง':'สีเขียว')+' — หนีบได้!':' · ยังไม่ตรงกับกล่องใบใด');
+}
 
 const spd=()=>+$('spd').value,sleep=ms=>new Promise(r=>setTimeout(r,ms*spd()));
 function to(o,D,id){const s={...R};return new Promise(res=>{const t0=performance.now();(function st(now){if(id!==runId)return res();const t=Math.min(1,(now-t0)/(D*spd())),k=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;for(const q in o)R[q]=s[q]+(o[q]-s[q])*k;draw();t<1?requestAnimationFrame(st):res()})(t0)})}
@@ -609,6 +685,7 @@ function resetScene(){runId++;running=false;hl=null;hlBad=false;actSv=0;runStepN
 async function arm(o,D,id){const q={...R,...o};if(fkOf(q).t[1]<8)return 'ปลายแขนชนพื้น! ท่านี้แขนกลต่ำเกินไป';await to(o,D,id)}
 async function act(n,id){
   const k=n.k;
+  if(KD[k].ang)return actAng(n,id);
   if(k==='s1L'||k==='s1R'){
     if(fkOf(R).t[1]<40)return 'แขนกลชนกล่องขณะหมุน! ต้องยกแขนขึ้น (Servo2 ยกขึ้น) ก่อนหมุน Servo1';
     const p=R.phi+(k==='s1L'?-8:8);if(Math.abs(p)>170)return 'Servo1 หมุนเกินขีดจำกัด';
@@ -656,6 +733,13 @@ function evalEnd(){
     if(lvl===8){const c=LV[8].cases[curCase()].c;if(!holding&&at(c,c==='red'?A_:B_))return[1,'คัดแยกกล่องสี'+(c==='red'?'แดงไปจุด A':'เขียวไปจุด B')+'ถูกต้อง'];return[0,'กรณีนี้กล่องเป็นสี'+(c==='red'?'แดง ต้องไปวางที่จุด A':'เขียว ต้องไปวางที่จุด B')+' และต้องปล่อยมือจับ']}
     if(lvl===9){const a=at('red',A_),b=at('green',B_);if(a&&b&&!holding&&order[0]==='red'&&order[1]==='green')return[1,'นำกล่องแดงไป A และกล่องเขียวไป B ตามลำดับ'];return[0,'ยังไม่ตรงโจทย์: '+(a?'':'กล่องแดงต้องอยู่ที่จุด A · ')+(b?'':'กล่องเขียวต้องอยู่ที่จุด B · ')+(a&&b?'ต้องหยิบกล่องแดงก่อนกล่องเขียว':'')]}
     if(lvl===10){if(at('red',0)&&!holding&&stats.rel===6)return[1,'ครบ 3 รอบ กล่องกลับมาที่จุดเริ่มต้น O'];return[0,'ต้องทำครบ 3 รอบ (วางทั้งหมด 6 ครั้ง) และให้กล่องอยู่ที่จุด O ตอนจบ — ตอนนี้วางไป '+stats.rel+' ครั้ง']}
+    if(lvl===12||lvl===13){const used=new Set(nodes.map(n=>n.k)),miss=[1,2,3,4,5].filter(i=>!used.has('a'+i));
+      if(miss.length)return[0,'ผังนี้ยังไม่ได้กำหนดมุมให้ครบทุก Servo — ขาด Servo'+miss.join(', ')+' (ด่านนี้ต้องตั้งมุมให้ครบทั้ง 5 ตัว)'];
+      const near=(n,p)=>!!boxes[n]&&Math.abs(boxes[n].phi-p)<4&&Math.abs((boxes[n].r||BR)-BR)<16;
+      if(lvl===12){if(near('red',A_)&&!holding&&(boxes.red.z||20)<30)return[1,'กำหนดมุมครบทั้ง 5 Servo และนำกล่องแดงไปวางที่จุด A สำเร็จ'];return[0,'ยังไม่สำเร็จ: กล่องแดงต้องถูกวางที่จุด A (ห่างฐาน r≈150) บนพื้น และมือจับต้องปล่อยแล้ว']}
+      const st=near('green',A_)&&Math.abs((boxes.green.z||20)-60)<8;
+      if(st&&near('red',A_)&&!holding)return[1,'วางกล่องเขียวซ้อนบนกล่องแดงที่จุด A สำเร็จ ด้วยมุมที่คุณคำนวณเอง'];
+      return[0,'ยังไม่สำเร็จ: '+(holding?'มือจับยังถือกล่องอยู่ · ':'')+(st?'':'กล่องเขียวต้องวางซ้อนอยู่บนกล่องแดงที่จุด A (ปลายมือ r≈150, z≈60 ตอนปล่อย) ')]}
     if(lvl===11){const a=at('red',A_),b=at('green',C_);if(a&&b&&!holding&&stats.rel===2)return[1,'เก็บกล่องแดงที่จุด A และกล่องเขียวที่จุด C ครบทั้ง 2 ใบ'];return[0,'ยังไม่ตรงโจทย์: '+(a?'':'กล่องแดงต้องอยู่ที่จุด A · ')+(b?'':'กล่องเขียวต้องอยู่ที่จุด C · ')+(holding?'มือจับยังถือกล่องอยู่':'')]}
     const okR=Math.abs(boxes.red.phi-A_)<4,okG=Math.abs(boxes.green.phi-B_)<4;
   if(okR&&okG&&!holding&&order[0]==='red'&&order[1]==='green')return[1,'กล่องแดงอยู่ที่จุด A และกล่องเขียวอยู่ที่จุด B ตามลำดับที่โจทย์กำหนด'];
@@ -694,7 +778,7 @@ async function run(){
     say('🎉 ผ่านด่านแล้ว! '+msg+' (ผังนี้ใช้ '+nodes.length+' บล็อก)','ok');tabs();$('next').hidden=lvl>=LV.length-1;if(lvl>=LV.length-1)say('🏆 ผ่านครบทั้ง '+LV.length+' ด่าน! '+msg+' (ผังนี้ใช้ '+nodes.length+' บล็อก)','ok')}
   else say(msg+(LV[lvl].cases?' (กรณีทดสอบที่ '+(ci+1)+'/'+LV[lvl].cases.length+')':''),'bad');
 }
-function build(def){const[nd,ed]=def();nodes=[];edges=[];const ns=nd.map(([k,x,y])=>{const n=mkNode(k,x,y);nodes.push(n);return n});ed.forEach(([a,p,b])=>edges.push({from:ns[a].id,port:p,to:ns[b].id}))}
+function build(def){const[nd,ed]=def();nodes=[];edges=[];const ns=nd.map(([k,x,y,ang])=>{const n=mkNode(k,x,y);if(ang!==undefined)n.ang=ang;nodes.push(n);return n});ed.forEach(([a,p,b])=>edges.push({from:ns[a].id,port:p,to:ns[b].id}))}
 function solution(){touched();resetScene();build(LV[lvl].sol);render();fitView();say('นี่คือตัวอย่างเฉลย — กด “เริ่มทำงาน” เพื่อดูแขนกลทำงาน')}
 /* ---------- Levels UI ---------- */
 function unlocked(i){return i===0||passed[i-1]||unl[i]}
@@ -702,7 +786,7 @@ const unl=Array(LV.length).fill(false);unl[0]=true;
 function tabs(){$('tabs').innerHTML=LV.map((l,i)=>`<button data-lv="${i}" class="${i===lvl?'on':''}" ${unlocked(i)?'':'data-lock="1"'}>${unlocked(i)?(passed[i]?'✅ ':''):'🔒 '}ด่าน ${i+1}</button>`).join('')}
 function setLevel(i){store[lvl]={nodes,edges,nid};lvl=i;const s=store[i]||{nodes:[],edges:[],nid:1};nodes=s.nodes;edges=s.edges;nid=s.nid;
   $('mt').textContent=LV[i].t;$('mx').textContent=LV[i].m;$('hn').textContent='💡 '+LV[i].h;
-  $('customAssetPanel').hidden=!(i===3||i===4);
+  $('customAssetPanel').hidden=!(i===3||i===4);$('lab').hidden=!LV[i].lab;
   $('uploadTwoField').hidden=i!==4;
   $('assetStageTag').textContent=i===4?'ด่าน 5 · 2 ชิ้นงาน':'ด่าน 4 · 1 ชิ้นงาน';
   document.body.classList.toggle('construction-stage',i===3||i===4);
@@ -1003,7 +1087,7 @@ tabs();resetScene();
              if(held===name)mesh.position.copy(tipWorld);
              else{
                const theta=THREE.MathUtils.degToRad(b.phi);
-               mesh.position.set(150*Math.sin(theta),20,150*Math.cos(theta));
+               {const rr=b.r||150;mesh.position.set(rr*Math.sin(theta),b.z||20,rr*Math.cos(theta))}
              }
              mesh.quaternion.copy(identityQuaternion);
            }
@@ -1013,7 +1097,7 @@ tabs();resetScene();
              if(held===name)studentObject.position.copy(tipWorld).add(new THREE.Vector3(0,-assetHeights[name]*.5,0));
              else{
                const theta=THREE.MathUtils.degToRad(b.phi);
-               studentObject.position.set(150*Math.sin(theta),1.8,150*Math.cos(theta));
+               {const rr=b.r||150;studentObject.position.set(rr*Math.sin(theta),(b.z||20)-18.2,rr*Math.cos(theta))}
              }
            }
          }
