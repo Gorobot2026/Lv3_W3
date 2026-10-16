@@ -1,301 +1,314 @@
-<!doctype html>
-<html lang="th">
-<head>
-<meta charset="utf-8">
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>เกม Flowchart ควบคุมแขนกล</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<title>เกมเขียนโค้ด Servo 3D</title>
 <style>
-:root{--bg:#f3f1f7;--card:#fff;--ink:#241b33;--mut:#6b6280;--line:#ddd6ea;--acc:#6f3f86;--grid:#e9e4f1;--pal:#f7f4fb;--edge:#4a3f5e;--sc:#f4f7fb;--floor:#dcd6e8;--okbg:#e3f5ea;--okc:#1d6b3f;--badbg:#fdeaea;--badc:#a32a2a;--infobg:#f0ebf7;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15101d;--card:#1f1830;--ink:#efeaf7;--mut:#a79cbd;--line:#352b4a;--acc:#c79be0;--grid:#2a2140;--pal:#251d38;--edge:#c9bfdc;--sc:#222b3d;--floor:#3a3052;--okbg:#17382a;--okc:#8fe0b0;--badbg:#3d1c1f;--badc:#ff9d9d;--infobg:#2a2140}}
-:root[data-theme="dark"]{--bg:#15101d;--card:#1f1830;--ink:#efeaf7;--mut:#a79cbd;--line:#352b4a;--acc:#c79be0;--grid:#2a2140;--pal:#251d38;--edge:#c9bfdc;--sc:#222b3d;--floor:#3a3052;--okbg:#17382a;--okc:#8fe0b0;--badbg:#3d1c1f;--badc:#ff9d9d;--infobg:#2a2140}
-*{box-sizing:border-box}
-html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:'Sarabun',system-ui,'Noto Sans Thai',sans-serif;font-size:15px}
-header{background:linear-gradient(90deg,#33193f,#6f3f86);color:#fff;padding:14px 20px}
-h1{margin:0;font-size:21px}
-header p{margin:3px 0 0;font-size:13px;opacity:.85}
-main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px;padding:14px;max-width:1500px;margin:0 auto;align-items:start}
-@media(max-width:960px){main{grid-template-columns:1fr}}
-.side{position:sticky;top:10px}
-@media(max-width:960px){.side{position:static}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
-.card h2{margin:0 0 8px;font-size:14px;color:var(--acc)}
-.mission{background:var(--infobg);border-left:4px solid var(--acc);padding:10px 12px;border-radius:8px;font-size:14px;line-height:1.5;margin-bottom:10px}
-.mission b.r{color:#c0392b}.mission b.g{color:#3f8a1c}
-.mission small{display:block;color:var(--mut);margin-top:4px}
-.bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center}
-button,select{font:inherit;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px;cursor:pointer}
-button:hover{border-color:var(--acc)}
-button.go{background:#2e8b57;border-color:#2e8b57;color:#fff;font-weight:700}
-#fc{width:100%;height:auto;display:block;touch-action:none;user-select:none;background:var(--card);border:1px solid var(--line);border-radius:10px}
-#sc{width:100%;height:auto;display:block;background:var(--sc);border-radius:10px;border:1px solid var(--line)}
-.ed{stroke:var(--edge);stroke-width:2;fill:none;stroke-linejoin:round}
-.sh{stroke:rgba(0,0,0,.45);stroke-width:1.4}
-.nt{font-size:13.5px;font-weight:600;text-anchor:middle;dominant-baseline:central;pointer-events:none;font-family:'Sarabun',sans-serif}
-.node{cursor:grab}.pal{cursor:copy}
-.node.run .sh{stroke:#ff7a00;stroke-width:4}
-.node.bad .sh{stroke:#e02d2d;stroke-width:4}
-.port{fill:#fff;stroke:var(--acc);stroke-width:2.2;cursor:crosshair}
-.port:hover{fill:var(--acc)}
-.inp{fill:var(--edge)}
-.lbl{font-size:12px;fill:var(--mut);font-weight:700;font-family:'Sarabun',sans-serif}
-.ph{font-size:12px;fill:var(--mut);font-family:'Sarabun',sans-serif}
-#msg{margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--infobg);font-size:14px;line-height:1.5}
-#msg.ok{background:var(--okbg);color:var(--okc)}#msg.bad{background:var(--badbg);color:var(--badc)}
-ol#log{margin:6px 0 0;padding-left:22px;font-size:13px;color:var(--mut);max-height:140px;overflow:auto}
-.legend{font-size:12px;color:var(--mut);margin-top:8px}
-#pin{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
-#pin[hidden]{display:none}
-.dlg{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:20px;width:100%;max-width:320px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
-.dlg h3{margin:0 0 4px;font-size:18px}.dlg p{margin:0 0 12px;color:var(--mut);font-size:14px}
-.dlg input{width:100%;font:inherit;font-size:22px;letter-spacing:8px;text-align:center;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
-#pe{min-height:20px;margin:6px 0;color:var(--badc);font-size:13px;text-align:center}
-.dlg .row{display:flex;gap:8px;justify-content:flex-end}
-</style>
-</head>
-<body>
-<header>
-  <h1>🤖 เกม Flowchart ควบคุมแขนกล</h1>
-  <p>ออกแบบผังงานสั่ง Servo ให้แขนกลหยิบกล่องไปวางให้ถูกที่ แล้วกด “เริ่มทำงาน” เพื่อดูแขนกลทำงานตามผังของคุณ</p>
-</header>
-<main>
-  <section class="card">
-    <div class="mission"><b>โจทย์:</b> Design a flowchart to control a robotic arm so that it picks up <b class="r">the red box</b> and places it at <b class="r">point A on the left side</b>, then picks up <b class="g">the green box</b> and places it at <b class="g">point B on the right side</b>.
-    <small>Servo1 = หมุนฐาน (ซ้าย/ขวา) · Servo2 = ไหล่ (ขึ้น/ลง/ไปข้างหน้า) · Servo5 = ข้อศอก · Servo6 = มือจับ · Servo1 หมุนทีละ 8° จึงต้องใช้ Decision วนซ้ำจนถึงจุดหมาย</small></div>
-    <div class="bar">
-      <button class="go" id="run">▶ เริ่มทำงาน</button>
-      <button id="reset">↺ รีเซ็ตแขนกล</button>
-      <button id="clear">🗑 ล้างผัง</button>
-      <button id="sol">💡 แสดงเฉลย</button>
-      <select id="spd" aria-label="ความเร็ว"><option value="1.6">ช้า</option><option value="1" selected>ปกติ</option><option value=".5">เร็ว</option></select>
-    </div>
-    <svg id="fc" viewBox="0 0 1000 810" role="application" aria-label="พื้นที่วาง Flowchart"></svg>
-    <div class="legend">ลากบล็อกจากแถบซ้ายมาวาง · ลากจากจุดวงกลมของบล็อกไปปล่อยบนบล็อกถัดไปเพื่อต่อ flowline · คลิกที่เส้นเพื่อลบเส้น · ลากบล็อกกลับแถบซ้ายเพื่อลบ</div>
-  </section>
-  <section class="side">
-    <div class="card">
-      <h2>จำลองการทำงานของแขนกล</h2>
-      <svg id="sc" viewBox="0 0 600 420" role="img" aria-label="แขนกลและกล่อง"></svg>
-      <div id="msg">ลากบล็อกมาต่อกันเป็นผังงาน เริ่มจาก “Start” และจบที่ “End”</div>
-    </div>
-    <div class="card" style="margin-top:14px">
-      <h2>ลำดับคำสั่งที่ทำงานจริง</h2>
-      <ol id="log"></ol>
-    </div>
-  </section>
-</main>
-<div id="pin" hidden><div class="dlg" role="dialog" aria-modal="true" aria-label="ใส่รหัสดูเฉลย"><h3>🔒 เฉลย</h3><p>ใส่รหัสเพื่อดูเฉลย</p><input id="pv" type="password" inputmode="numeric" maxlength="8" autocomplete="off"><div id="pe"></div><div class="row"><button id="pc">ยกเลิก</button><button class="go" id="pk">ตกลง</button></div></div></div>
+:root{--bg:#f4f6fb;--fg:#1d2433;--card:#fff;--mut:#667;--ac:#2f6fed;--ok:#18a058;--bad:#d33;--code:#0f1623;--cf:#d7e3ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10141d;--fg:#e8ecf5;--card:#1a2030;--mut:#9aa4b8;--code:#0a0e16}}
+:root[data-theme="dark"]{--bg:#10141d;--fg:#e8ecf5;--card:#1a2030;--mut:#9aa4b8;--code:#0a0e16}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,"Noto Sans Thai",sans-serif}
+.w{max-width:1100px;margin:auto;padding:12px}h1{font-size:20px;margin:4px 0 8px}
+#lv{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+#lv button{width:40px;height:40px;border-radius:10px;border:2px solid transparent;background:var(--card);color:var(--fg);font-weight:700;cursor:pointer}
+#lv button.on{border-color:var(--ac)}#lv button.done{background:var(--ok);color:#fff}#lv button:disabled{opacity:.35;cursor:not-allowed}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:800px){.g{grid-template-columns:1fr}}
+.c{background:var(--card);border-radius:14px;padding:12px;min-width:0}
+#code{background:var(--code);color:var(--cf);font:14px/1.7 ui-monospace,Consolas,monospace;white-space:pre-wrap;padding:12px;border-radius:10px;overflow-x:auto}
+#code input{width:6ch;font:inherit;background:#26334f;color:#ffd866;border:1px dashed #ffd866;border-radius:5px;text-align:center;padding:0 2px}
+button.b{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;margin:8px 6px 0 0}
+button.b.s{background:var(--mut)}
+#msg{margin-top:8px;padding:8px 10px;border-radius:8px;min-height:20px}.ok{background:#18a05822;color:var(--ok)}.bad{background:#d3332222;color:var(--bad)}
+canvas{width:100%;border-radius:10px;background:linear-gradient(#26324d,#111a2c);touch-action:none;display:block}
+pre{overflow-x:auto;font-size:12px;background:var(--code);color:var(--cf);padding:8px;border-radius:8px}
+.k i{display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 4px 0 10px}.mut{color:var(--mut);font-size:13px}
+:root{--ac:#4f6bff;--ac2:#8b5cf6}
+body{font-family:Inter,"Noto Sans Thai",system-ui,sans-serif;background:radial-gradient(1100px 480px at 12% -10%,rgba(79,107,255,.18),transparent),radial-gradient(900px 400px at 100% 0,rgba(139,92,246,.15),transparent),var(--bg)}
+.nb{display:flex;gap:14px;align-items:center;padding:12px 22px;background:rgba(127,127,160,.08);backdrop-filter:blur(14px);border-bottom:1px solid rgba(127,127,160,.22);position:sticky;top:0;z-index:5}
+.nb b{font-size:18px;letter-spacing:-.3px;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}.nb span{color:var(--mut);font-size:12px}
+h1{font-size:22px;font-weight:800;letter-spacing:-.3px}
+.c{border:1px solid rgba(127,127,160,.22);box-shadow:0 10px 30px rgba(20,30,70,.10);border-radius:18px}
+#pg{height:6px;border-radius:9px;background:rgba(127,127,160,.22);margin:6px 0 10px;overflow:hidden}#pg i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .5s}
+#lv button{border-radius:12px;box-shadow:0 2px 6px rgba(20,30,70,.12);transition:.15s}#lv button:not(:disabled):hover{transform:translateY(-2px)}
+#code{background:#0d1117;border:1px solid #30363d;padding:0 14px 12px;border-radius:12px}
+#code::before{content:"● ● ●    sketch.ino";display:block;color:#8b949e;font:12px Inter,sans-serif;letter-spacing:2px;padding:10px 0;margin-bottom:6px;border-bottom:1px solid #21262d}
+#ed{width:100%;min-height:300px;background:transparent;color:inherit;border:0;outline:0;font:inherit;line-height:1.7;resize:vertical;white-space:pre;tab-size:2}
+button.b{background:linear-gradient(135deg,var(--ac),var(--ac2));box-shadow:0 6px 16px rgba(79,107,255,.35);transition:.15s}button.b:hover{transform:translateY(-1px)}button.b.s{background:rgba(127,127,160,.28);color:var(--fg);box-shadow:none}
+canvas{background:radial-gradient(circle at 50% 25%,#2d3d6b,#0a0f1f);box-shadow:inset 0 0 40px rgba(0,0,0,.4)}
+.bd{font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px;background:linear-gradient(90deg,var(--ac),var(--ac2));color:#fff;vertical-align:middle;margin-left:6px}
+.pt{margin:8px 0;padding:10px 12px;border-radius:12px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.35);font-size:13px}
+.chip{display:inline-block;margin:5px 6px 0 0;padding:2px 10px;border-radius:99px;background:var(--card);font:12px ui-monospace,Consolas,monospace}
+#sn{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}#sn button{border:1px solid rgba(127,127,160,.35);background:var(--card);color:var(--fg);border-radius:8px;padding:4px 10px;font:12px ui-monospace,Consolas,monospace;cursor:pointer}#sn button:hover{border-color:var(--ac)}
+#pt[hidden],#sn[hidden]{display:none}
+</style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+Thai:wght@400;600;800&display=swap"></head><body><nav class="nb"><b>◆ ServoLab</b><span>Embedded C Studio · ESP32 + PCA9685</span></nav><div class="w">
+<h1>🤖 เกมเขียนโค้ด Servo & เทคโนโลยี 3D — 40 ด่าน <span id="tq" style="font-size:13px;font-weight:400"><button class="b s" id="kb" style="padding:4px 10px;margin:0">🔑 ครู</button></span></h1>
+<div id="pg"><i></i></div><div id="lv"></div>
+<div class="g">
+<div class="c"><h2 id="tt" style="margin:0 0 4px;font-size:17px"></h2><div id="ms"></div>
+<p class="mut">เติมช่องสีเหลืองให้ครบ แล้วกด ▶ รัน (servo สีเขียวโปร่ง = ตำแหน่งเป้าหมาย)</p>
+<div id="pt" class="pt" hidden></div><div id="sn" hidden></div><div id="code"></div>
+<button class="b" id="run">▶ รัน</button><button class="b s" id="hint">💡 คำใบ้</button><button class="b s" id="rst">↺ รีเซ็ต</button>
+<div id="msg"></div>
+<details><summary class="mut">ดูโค้ดเต็มสำหรับอัปโหลดลงบอร์ด</summary><pre id="full"></pre><button class="b s" id="cp">คัดลอก</button></details></div>
+<div class="c"><canvas id="cv"></canvas>
+<div class="k mut"><i style="background:#ff8a3d"></i>servo1 (ช่อง 0)<i style="background:#2ec4d6"></i>servo2 (ช่อง 1)<i style="background:#f06292"></i>servo3 (ช่อง 2)</div>
+<p class="mut" style="margin:6px 0 0">ลากเมาส์/นิ้วบนภาพเพื่อหมุนมุมมอง 3D</p></div>
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-const fc=$('fc'),sc=$('sc');
-/* ---------- Flowchart model ---------- */
-const COL={terminal:'#6f3f86',process:'#bcd631',decision:'#7a96ff'};
-const HH={terminal:40,process:46,decision:64},PX=336;
-const P=[
- {k:'start',s:'terminal',l:'Start'},{k:'end',s:'terminal',l:'End'},
- {k:'s1L',s:'process',l:'หมุน Servo1\nไปทางซ้าย',v:1},{k:'s1R',s:'process',l:'หมุน Servo1\nไปทางขวา',v:1},
- {k:'s2Up',s:'process',l:'หมุน Servo2\nขึ้น',v:2},{k:'s2Down',s:'process',l:'หมุน Servo2\nลง',v:2},
- {k:'s2Fwd',s:'process',l:'หมุน Servo2\nไปข้างหน้า',v:2},{k:'s5Down',s:'process',l:'หมุน Servo5\nลงเล็กน้อย',v:5},
- {k:'grip',s:'process',l:'ควบคุม Servo6\nเพื่อหยิบกล่อง',v:6},{k:'release',s:'process',l:'ควบคุม Servo6\nเพื่อเปิดและวางกล่อง',v:6},
- {k:'dA',s:'decision',l:'หมุนถึง\nจุด A'},{k:'dG',s:'decision',l:'หมุนถึง\nกล่องสีเขียว'},
- {k:'dB',s:'decision',l:'หมุนถึง\nจุด B'},{k:'stop',s:'process',l:'หยุดหมุน',v:1}
+const HEAD=`#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+Adafruit_PWMServoDriver idektep = Adafruit_PWMServoDriver(0x40);
+#define SERVOMIN  100
+#define SERVOMAX  600
+
+int angleToPulse(int ang) {
+  return map(ang, 0, 180, SERVOMIN, SERVOMAX);
+}
+
+`;
+const INIT=`  idektep.begin();
+  idektep.setPWMFreq(60);
+`;
+let log=[],T=0;
+const seq=c=>log.filter(e=>e.c==c).map(e=>e.a),fin=c=>{const s=seq(c);return s.length?s[s.length-1]:null},J=JSON.stringify;
+const rep=(a,n)=>Array(n).fill(a).flat();
+const L=[
+{t:'ด่าน 1: สวัสดี Servo',m:'สั่งให้ servo1 หมุนไปที่มุม <b>90°</b> (ตรงกลาง)',h:'มุมที่ต้องการคือ 90 ใส่ในวงเล็บของ angleToPulse()',n:1,tg:{0:90},
+c:`#define servo1 0
+
+void setup() {
+${INIT}
+  idektep.setPWM(servo1, 0, angleToPulse(___));
+}`,ok:()=>fin(0)==90},
+{t:'ด่าน 2: รอแล้วกลับ',m:'หมุนไป <b>180°</b> รอ <b>1 วินาที</b> แล้วกลับมา <b>0°</b>',h:'delay ใช้หน่วยมิลลิวินาที 1 วินาที = 1000',n:1,tg:{0:0},
+c:`#define servo1 0
+
+void setup() {
+${INIT}
+  idektep.setPWM(servo1, 0, angleToPulse(180));
+  delay(___);
+  idektep.setPWM(servo1, 0, angleToPulse(___));
+}`,ok:()=>{const s=log.filter(e=>e.c==0);return s.length==2&&s[0].a==180&&s[1].a==0&&s[1].t-s[0].t>=1000}},
+{t:'ด่าน 3: เพิ่ม servo ตัวที่ 2',m:'servo2 อยู่ <b>ช่อง 1</b> ให้ servo1 ไป <b>45°</b> และ servo2 ไป <b>135°</b>',h:'#define servo2 ต้องตามด้วยเลขช่อง (ช่องถัดจาก 0)',n:2,tg:{0:45,1:135},
+c:`#define servo1 0
+#define servo2 ___
+
+void setup() {
+${INIT}
+  idektep.setPWM(servo1, 0, angleToPulse(45));
+  idektep.setPWM(servo2, 0, angleToPulse(___));
+}`,ok:()=>fin(0)==45&&fin(1)==135},
+{t:'ด่าน 4: ตัวแปร',m:'เริ่มที่ <b>30°</b> แล้วบวกเพิ่มให้จบที่ <b>90°</b>',h:'90 − 30 = ?',n:1,tg:{0:90},
+c:`#define servo1 0
+
+void setup() {
+${INIT}
+  int angle = ___;
+  idektep.setPWM(servo1, 0, angleToPulse(angle));
+  delay(500);
+  angle = angle + ___;
+  idektep.setPWM(servo1, 0, angleToPulse(angle));
+}`,ok:()=>seq(0)[0]==30&&fin(0)==90},
+{t:'ด่าน 5: ลูป for กวาดมุม',m:'กวาดจาก <b>0° ถึง 180°</b> ทีละ <b>30°</b>',h:'เงื่อนไข a <= 180 และเพิ่มทีละ 30 (a += 30)',n:1,tg:{0:180},
+c:`#define servo1 0
+
+void setup() {
+${INIT}
+  for (int a = 0; a <= ___; a += ___) {
+    idektep.setPWM(servo1, 0, angleToPulse(a));
+    delay(300);
+  }
+}`,ok:()=>J(seq(0))==J([0,30,60,90,120,150,180])},
+{t:'ด่าน 6: โบกมือ 3 ครั้ง',m:'โบก servo สลับ <b>45° ↔ 135°</b> จำนวน <b>3 รอบ</b>',h:'i < 3 ทำซ้ำ 3 รอบ และมุมที่สองคือ 135',n:1,tg:{0:135},
+c:`#define servo1 0
+
+void setup() {
+${INIT}
+  for (int i = 0; i < ___; i++) {
+    idektep.setPWM(servo1, 0, angleToPulse(45));
+    delay(400);
+    idektep.setPWM(servo1, 0, angleToPulse(___));
+    delay(400);
+  }
+}`,ok:()=>J(seq(0))==J(rep([45,135],3))},
+{t:'ด่าน 7: สร้างฟังก์ชัน',m:'สร้างฟังก์ชัน <b>wave()</b> โบก 60°→120° แล้วเรียก <b>3 ครั้ง</b> แล้วกลับ <b>90°</b>',h:'เรียกฟังก์ชันด้วยชื่อ เช่น wave(); และวนซ้ำ 3 รอบ',n:1,tg:{0:90},
+c:`#define servo1 0
+
+void wave() {
+  idektep.setPWM(servo1, 0, angleToPulse(60));
+  delay(300);
+  idektep.setPWM(servo1, 0, angleToPulse(120));
+  delay(300);
+}
+
+void setup() {
+${INIT}
+  for (int i = 0; i < ___; i++) {
+    ___();
+  }
+  idektep.setPWM(servo1, 0, angleToPulse(90));
+}`,ok:()=>J(seq(0))==J([...rep([60,120],3),90])},
+{t:'ด่าน 8: if / else หน้าต่างอัตโนมัติ',m:'ค่าแสงอ่านได้ 720 ถ้า <b>สว่างกว่า 500</b> ให้เปิดหน้าต่าง (<b>180°</b>) ไม่งั้นปิด (0°)',h:'ค่าแสง 720 มากกว่าเกณฑ์ 500 จึงเข้าเงื่อนไข if',n:1,tg:{0:180},
+c:`#define servo1 0
+
+void setup() {
+${INIT}
+  int light = 720;
+  int angle;
+  if (light > ___) {
+    angle = ___;
+  } else {
+    angle = 0;
+  }
+  idektep.setPWM(servo1, 0, angleToPulse(angle));
+}`,ok:()=>fin(0)==180},
+{t:'ด่าน 9: สองมอเตอร์สวนทางกัน',m:'servo1 เพิ่ม <b>0→90°</b> ขณะที่ servo2 ลด <b>90→0°</b> พร้อมกัน',h:'servo2 = 90 − a ดังนั้นตอน a=0 จะได้ 90',n:2,tg:{0:90,1:0},
+c:`#define servo1 0
+#define servo2 1
+
+void setup() {
+${INIT}
+  for (int a = 0; a <= 90; a += 10) {
+    idektep.setPWM(servo1, 0, angleToPulse(a));
+    idektep.setPWM(servo2, 0, angleToPulse(___ - a));
+    delay(200);
+  }
+}`,ok:()=>fin(0)==90&&fin(1)==0&&seq(1)[0]==90},
+{t:'ด่าน 10: โปรเจกต์แขนกลหยิบของ',m:'แขนกล 3 ข้อ: เปิดมือ → ลดแขน → <b>หุบมือจับของ</b> → ยก → หมุนฐานไปวาง (ฐาน 0°, ไหล่ 45°, มือ 180°)',h:'servo3 อยู่ช่อง 2 / ลดแขนไหล่ 135° / หุบมือ 0° / ปล่อยของมือ 180°',n:3,tg:{0:0,1:45,2:180},
+c:`#define servo1 0 // ฐาน
+#define servo2 1 // ไหล่
+#define servo3 ___ // มือ
+
+void pose(int a, int b, int c) {
+  idektep.setPWM(servo1, 0, angleToPulse(a));
+  idektep.setPWM(servo2, 0, angleToPulse(b));
+  idektep.setPWM(servo3, 0, angleToPulse(c));
+  delay(600);
+}
+
+void setup() {
+${INIT}
+  pose(90, 45, 180);  // เปิดมือ
+  pose(90, ___, 180); // ลดแขน
+  pose(90, 135, ___); // หุบมือจับของ
+  pose(90, 45, 0);    // ยกขึ้น
+  pose(0, 45, ___);   // วางของ
+}`,ok:()=>fin(0)==0&&fin(1)==45&&fin(2)==180&&log.some(e=>e.c==2&&e.a==0)&&log.some(e=>e.c==1&&e.a==135)}
 ];
-let nodes=[],edges=[],nid=1,hl=null,hlBad=false,drag=null,conn=null,running=false,runId=0,actSv=0;
-const N=id=>nodes.find(n=>n.id===id);
-const mkNode=(p,x,y)=>({id:nid++,k:p.k,s:p.s,l:p.l,x,y,w:p.s==='decision'?160:150,h:HH[p.s]});
-function shape(s,w,h,fill){
-  if(s==='terminal')return `<rect class="sh" x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="${h/2}" fill="${fill}"/>`;
-  if(s==='process')return `<rect class="sh" x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="3" fill="${fill}"/>`;
-  return `<polygon class="sh" points="0,${-h/2} ${w/2},0 0,${h/2} ${-w/2},0" fill="${fill}"/>`;
-}
-function nodeSvg(n,pal){
-  const tc=n.s==='terminal'?'#fff':'#1d1830',ls=n.l.split('\n');
-  const tx=ls.map((t,i)=>`<tspan x="0" dy="${i?16:-(ls.length-1)*8}">${t}</tspan>`).join('');
-  let ports='';
-  if(!pal){
-    if(n.k!=='start')ports+=`<circle class="inp" cy="${-n.h/2}" r="4"/>`;
-    if(n.s==='decision')ports+=`<circle class="port" data-port="yes" cy="${n.h/2}" r="7"/><circle class="port" data-port="no" cx="${n.w/2}" r="7"/><text class="lbl" x="12" y="${n.h/2+16}">ใช่</text><text class="lbl" x="${n.w/2+10}" y="-9">ไม่</text>`;
-    else if(n.k!=='end')ports+=`<circle class="port" data-port="out" cy="${n.h/2}" r="7"/>`;
-  }
-  const cls=(pal?'pal':'node')+(n.id===hl?(hlBad?' bad':' run'):'');
-  return `<g class="${cls}" ${pal?`data-pal="${n.k}"`:`data-id="${n.id}"`} transform="translate(${n.x} ${n.y})">${shape(n.s,n.w,n.h,COL[n.s])}<text class="nt" fill="${tc}">${tx}</text>${ports}</g>`;
-}
-function route(e,a,b){
-  const p3=[b.x,b.y-b.h/2];
-  if(e.port==='no'){const p0=[a.x+a.w/2,a.y],q=[b.x+b.w/2,b.y],xs=Math.max(p0[0],q[0])+22;return [p0,[xs,a.y],[xs,b.y],q]}
-  const p0=[a.x,a.y+a.h/2],pts=[p0];
-  if(p3[1]-p0[1]>=36){const ym=(p0[1]+p3[1])/2;pts.push([p0[0],ym],[p3[0],ym],p3)}
-  else if(Math.abs(a.x-b.x)>a.w){const xm=b.x-b.w/2-10,y1=p0[1]+22;pts.push([p0[0],y1],[xm,y1],[xm,p3[1]-24],[p3[0],p3[1]-24],p3)}
-  else{const xs=Math.max(a.x+a.w/2,b.x+b.w/2)+36;pts.push([p0[0],p0[1]+22],[xs,p0[1]+22],[xs,p3[1]-22],[p3[0],p3[1]-22],p3)}
-  return pts;
-}
-function rp(pts,r){
-  pts=pts.filter((p,i)=>i===0||p[0]!==pts[i-1][0]||p[1]!==pts[i-1][1]);
-  let d=`M${pts[0][0]} ${pts[0][1]}`;
-  for(let i=1;i<pts.length-1;i++){
-    const p=pts[i],a=pts[i-1],b=pts[i+1],l1=Math.hypot(p[0]-a[0],p[1]-a[1]),l2=Math.hypot(b[0]-p[0],b[1]-p[1]),q=Math.min(r,l1/2,l2/2);
-    d+=`L${p[0]+(a[0]-p[0])/l1*q} ${p[1]+(a[1]-p[1])/l1*q}Q${p[0]} ${p[1]} ${p[0]+(b[0]-p[0])/l2*q} ${p[1]+(b[1]-p[1])/l2*q}`;
-  }
-  const L=pts[pts.length-1];return d+`L${L[0]} ${L[1]}`;
-}
-function render(){
-  let ed='';
-  edges.forEach((e,i)=>{const a=N(e.from),b=N(e.to);if(!a||!b)return;const d=rp(route(e,a,b),9);
-    ed+=`<path data-edge="${i}" d="${d}" stroke="transparent" stroke-width="16" fill="none" style="cursor:pointer"/><path class="ed" d="${d}" marker-end="url(#ah)"/>`});
-  let pal='';P.forEach((p,i)=>pal+=nodeSvg({...mkNode(p,85+(i%2)*162,62+Math.floor(i/2)*84),id:0},true));
-  fc.innerHTML=`<defs><pattern id="gp" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="var(--grid)" stroke-width="1"/></pattern>
-  <marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L10 4L0 8z" style="fill:var(--edge)"/></marker></defs>
-  <rect x="${PX}" y="0" width="${1000-PX}" height="810" fill="url(#gp)"/>
-  <rect x="0" y="0" width="${PX}" height="810" style="fill:var(--pal)"/><line x1="${PX}" y1="0" x2="${PX}" y2="810" style="stroke:var(--line)" stroke-width="2"/>
-  <text class="lbl" x="${PX/2}" y="22" text-anchor="middle">สัญลักษณ์ Flowchart (ลากไปวาง)</text>
-  <text class="ph" x="${PX/2}" y="790" text-anchor="middle">ลากบล็อกมาวางที่นี่เพื่อลบ</text>
-  ${nodes.length?'':`<text class="ph" x="660" y="400" text-anchor="middle">ลากบล็อกจากซ้ายมาวางตรงนี้</text>`}
-  ${pal}${ed}${nodes.map(n=>nodeSvg(n)).join('')}<path id="tmp" class="ed" stroke-dasharray="6 5" d=""/>`;
-}
-/* ---------- interaction ---------- */
-function pt(e){const p=fc.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(fc.getScreenCTM().inverse());return [q.x,q.y]}
-fc.addEventListener('pointerdown',e=>{
-  if(running)return;
-  const t=e.target,[x,y]=pt(e);
-  const port=t.closest('[data-port]'),ed=t.closest('[data-edge]'),pal=t.closest('[data-pal]'),nd=t.closest('[data-id]');
-  if(port){conn={from:+nd.dataset.id,port:port.dataset.port}}
-  else if(ed){edges.splice(+ed.dataset.edge,1);render();return}
-  else if(pal){const p=P.find(q=>q.k===pal.dataset.pal);
-    if(p.k==='start'&&nodes.some(n=>n.k==='start')){say('มีบล็อก Start อยู่แล้ว 1 อัน','bad');return}
-    const n=mkNode(p,x,y);nodes.push(n);drag={n,dx:0,dy:0};render()}
-  else if(nd){const n=N(+nd.dataset.id);drag={n,dx:n.x-x,dy:n.y-y};nodes.splice(nodes.indexOf(n),1);nodes.push(n);render()}
-  else return;
-  fc.setPointerCapture(e.pointerId);e.preventDefault();
-});
-fc.addEventListener('pointermove',e=>{
-  const [x,y]=pt(e);
-  if(drag){drag.n.x=Math.max(30,Math.min(985,x+drag.dx));drag.n.y=Math.max(25,Math.min(790,y+drag.dy));render()}
-  else if(conn){$('tmp').setAttribute('d',rp(route({port:conn.port},N(conn.from),{x,y,w:0,h:0}),9))}
-});
-fc.addEventListener('pointerup',e=>{
-  if(drag){const n=drag.n;if(n.x<PX){nodes=nodes.filter(m=>m!==n);edges=edges.filter(g=>g.from!==n.id&&g.to!==n.id)}
-    else n.x=Math.max(PX+n.w/2+4,n.x);drag=null;render()}
-  if(conn){const el=document.elementFromPoint(e.clientX,e.clientY),tn=el&&el.closest('[data-id]');
-    if(tn){const t=N(+tn.dataset.id);
-      if(t&&t.id!==conn.from&&t.k!=='start'){edges=edges.filter(g=>!(g.from===conn.from&&g.port===conn.port));edges.push({from:conn.from,port:conn.port,to:t.id})}}
-    conn=null;render()}
-});
-/* ---------- Robot scene (pseudo-3D) ---------- */
-const C=[300,330],SHZ=108,L1=112,L2=100,K=.42,A_=-56,G_=48,B_=96,rad=d=>d*Math.PI/180;
-let R,boxes,holding,order;
-function resetState(){R={r:40,h:170,phi:0,g:0};boxes={red:{phi:0},green:{phi:G_}};holding=null;order=[]}
-const pj=(r,z,f)=>[C[0]+r*Math.sin(f),C[1]+K*r*Math.cos(f)-z];
-function cube(p,c1,c2,c3){return `<g transform="translate(${p[0]} ${p[1]})"><rect x="-20" y="-20" width="40" height="40" fill="${c1}" stroke="rgba(0,0,0,.45)"/><polygon points="-20,-20 -12,-28 28,-28 20,-20" fill="${c2}" stroke="rgba(0,0,0,.4)"/><polygon points="20,-20 28,-28 28,12 20,20" fill="${c3}" stroke="rgba(0,0,0,.4)"/><text y="1" text-anchor="middle" dominant-baseline="central" font-size="9" fill="#fff" font-weight="700" font-family="Sarabun,sans-serif" opacity=".9" transform="skewY(-6)">iDekTep</text></g>`}
-function link(p,q,w1,w2,fill){const dx=q[0]-p[0],dy=q[1]-p[1],l=Math.hypot(dx,dy)||1,nx=-dy/l,ny=dx/l;
-  return `<polygon points="${p[0]+nx*w1},${p[1]+ny*w1} ${q[0]+nx*w2},${q[1]+ny*w2} ${q[0]-nx*w2},${q[1]-ny*w2} ${p[0]-nx*w1},${p[1]-ny*w1}" fill="${fill}" stroke="rgba(0,0,0,.4)" stroke-width="1.5" stroke-linejoin="round"/>`}
-function joint(p,r,c){let s=`<circle cx="${p[0]}" cy="${p[1]}" r="${r}" fill="${c}" stroke="rgba(0,0,0,.45)" stroke-width="1.5"/>`;
-  for(let i=0;i<5;i++){const a=i*1.2566;s+=`<circle cx="${p[0]+Math.cos(a)*r*.55}" cy="${p[1]+Math.sin(a)*r*.55}" r="1.8" fill="#fff" stroke="rgba(0,0,0,.35)" stroke-width=".6"/>`}return s}
-function badge(p,n){const on=actSv===n;return `<g transform="translate(${p[0]} ${p[1]})"><circle r="9" fill="${on?'#ff7a00':'#555'}" stroke="#fff" stroke-width="1.5"/><text y="1" text-anchor="middle" dominant-baseline="central" font-size="10" font-weight="700" fill="#fff" font-family="Sarabun,sans-serif">S${n}</text></g>`}
-function marker(phi,l,c){const p=pj(150,0,rad(phi));return `<ellipse cx="${p[0]}" cy="${p[1]}" rx="34" ry="14" fill="none" stroke="${c}" stroke-width="2" stroke-dasharray="5 4"/><circle cx="${p[0]}" cy="${p[1]+27}" r="11" fill="${c}"/><text x="${p[0]}" y="${p[1]+28}" text-anchor="middle" dominant-baseline="central" fill="#fff" font-weight="700" font-size="14" font-family="Sarabun,sans-serif">${l}</text>`}
-function draw(){
-  const f=rad(R.phi),Wz=R.h+52,dz=Wz-SHZ,d=Math.max(20,Math.min(L1+L2-1,Math.hypot(R.r,dz))),a=Math.atan2(dz,R.r),th=Math.acos((L1*L1+d*d-L2*L2)/(2*L1*d));
-  const S0=pj(0,SHZ,f),E=pj(L1*Math.cos(a+th),SHZ+L1*Math.sin(a+th),f),W=pj(R.r,Wz,f),sp=32-10*R.g;
-  const bx=['red','green'].map(n=>{const h=holding===n,p=h?pj(R.r,R.h+20,f):pj(150,20,rad(boxes[n].phi));return {n,p,dep:h?R.r*Math.cos(f):150*Math.cos(rad(boxes[n].phi))}}).sort((u,v)=>u.dep-v.dep);
-  const gp=pj(R.r,0,f),servoFront=Math.sin(f)>0,sv=`<rect x="${C[0]-40*Math.cos(f)-13}" y="${C[1]+K*40*Math.sin(f)-92}" width="26" height="44" rx="3" fill="#2b2b2f" stroke="#000" stroke-width="1.5"/>`;
-  sc.innerHTML=`<defs><linearGradient id="gT" x1="0" x2="1"><stop offset="0" stop-color="#34a9a5"/><stop offset=".45" stop-color="#72e3df"/><stop offset="1" stop-color="#2f9c98"/></linearGradient><linearGradient id="gY" x1="0" x2="1"><stop offset="0" stop-color="#d9b90f"/><stop offset=".5" stop-color="#f7de45"/><stop offset="1" stop-color="#cfae0d"/></linearGradient></defs>
-  <ellipse cx="300" cy="345" rx="292" ry="100" style="fill:var(--floor)"/>
-  ${marker(A_,'A','#c0392b')}${marker(B_,'B','#3f8a1c')}
-  <ellipse cx="${gp[0]}" cy="${gp[1]}" rx="26" ry="10" fill="rgba(0,0,0,.18)"/>
-  ${bx.map(b=>b.n==='red'?cube(b.p,'#e53935','#f08a86','#b02623'):cube(b.p,'#43a047','#86cc8a','#2c7a30')).join('')}
-  <ellipse cx="${C[0]}" cy="${C[1]+6}" rx="86" ry="33" fill="rgba(0,0,0,.2)"/>
-  <ellipse cx="${C[0]}" cy="${C[1]}" rx="80" ry="31" fill="#bfa10c" stroke="rgba(0,0,0,.4)"/>
-  <polygon points="${C[0]-80},${C[1]} ${C[0]-50},${C[1]-30} ${C[0]+50},${C[1]-30} ${C[0]+80},${C[1]}" fill="url(#gY)" stroke="rgba(0,0,0,.35)"/>
-  <ellipse cx="${C[0]}" cy="${C[1]}" rx="80" ry="31" fill="url(#gY)" clip-path="inset(50% 0 0 0)"/>
-  <ellipse cx="${C[0]-34}" cy="${C[1]-12}" rx="16" ry="7" fill="#2b2b2f"/><ellipse cx="${C[0]+34}" cy="${C[1]-12}" rx="16" ry="7" fill="#2b2b2f"/>
-  <ellipse cx="${C[0]}" cy="${C[1]-30}" rx="50" ry="17" fill="#f7de45" stroke="rgba(0,0,0,.35)"/>
-  <ellipse cx="${C[0]}" cy="${C[1]-36}" rx="46" ry="15" fill="#4fc9c6" stroke="rgba(0,0,0,.4)"/>
-  ${servoFront?'':sv}
-  <rect x="${C[0]-28}" y="${C[1]-112}" width="56" height="76" fill="url(#gT)" stroke="rgba(0,0,0,.4)"/>
-  <ellipse cx="${C[0]}" cy="${C[1]-36}" rx="28" ry="10" fill="#3aa8a4" stroke="rgba(0,0,0,.35)"/>
-  <ellipse cx="${C[0]}" cy="${C[1]-112}" rx="28" ry="10" fill="#8ff0ec" stroke="rgba(0,0,0,.4)"/>
-  ${[[-14,-62],[14,-62],[0,-86]].map(q=>`<circle cx="${C[0]+q[0]}" cy="${C[1]+q[1]}" r="3" fill="#fff" stroke="rgba(0,0,0,.4)" stroke-width=".8"/>`).join('')}
-  ${servoFront?sv:''}
-  ${link(S0,E,13,10,'#f0a77d')}${link(E,W,11,12,'#f6f6f6')}
-  ${joint(S0,15,'#4fc9c6')}${joint(E,12,'#4fc9c6')}
-  <g transform="translate(${W[0]} ${W[1]})"><rect x="-17" y="-14" width="34" height="24" rx="4" fill="#eaeaea" stroke="rgba(0,0,0,.45)" stroke-width="1.5"/><text y="-2" text-anchor="middle" dominant-baseline="central" font-size="8" fill="#555" font-weight="700" font-family="Sarabun,sans-serif">SERVO</text>
-  <rect x="-34" y="9" width="68" height="7" rx="2" fill="#6c6c70" stroke="#000" stroke-opacity=".5"/>
-  <g fill="#8d8d92" stroke="rgba(0,0,0,.55)" stroke-width="1.3"><polygon points="${-sp-4},16 ${-sp+4},16 ${-sp+4},44 ${-sp+1},48 ${-sp-4},44"/><polygon points="${sp-4},16 ${sp+4},16 ${sp+4},44 ${sp},48 ${sp-4},44"/></g></g>
-  ${badge([C[0]+88,C[1]-46],1)}${badge([S0[0]+22,S0[1]-22],2)}${badge([E[0]+18,E[1]-20],5)}${badge([W[0]+30,W[1]-12],6)}
-  <text x="14" y="26" font-size="13" font-weight="700" font-family="Sarabun,sans-serif" style="fill:var(--mut)">Servo1 = ${R.phi.toFixed(0)}°</text>`;
-}
-const spd=()=>+$('spd').value,sleep=ms=>new Promise(r=>setTimeout(r,ms*spd()));
-function to(o,D,id){const s={...R};return new Promise(res=>{const t0=performance.now();(function st(now){if(id!==runId)return res();const t=Math.min(1,(now-t0)/(D*spd())),k=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;for(const q in o)R[q]=s[q]+(o[q]-s[q])*k;draw();t<1?requestAnimationFrame(st):res()})(t0)})}
-function say(t,c){const m=$('msg');m.textContent=t;m.className=c||''}
-function li(t){const o=document.createElement('li');o.textContent=t.replace('\n',' ');$('log').appendChild(o);o.scrollIntoView({block:'nearest'})}
-function resetScene(){runId++;running=false;hl=null;hlBad=false;actSv=0;resetState();$('log').innerHTML='';say('ลากบล็อกมาต่อกันเป็นผังงาน เริ่มจาก “Start” และจบที่ “End”');render();draw()}
-/* ---------- Execute ---------- */
-async function act(n,id){
-  const k=n.k;
-  if(k==='s2Fwd'){await to({r:150,h:60},1000,id);return}
-  if(k==='s5Down'||k==='s2Down'){if(R.r<100)return 'ยังไม่ได้ยื่นแขนไปข้างหน้า (หมุน Servo2 ไปข้างหน้า) แขนจึงลดลงไม่ถึงกล่อง';await to({h:0},750,id);return}
-  if(k==='s2Up'){await to({h:110},750,id);return}
-  if(k==='s1L'||k==='s1R'){
-    if(R.h<45)return 'แขนกลชนกล่องขณะหมุน! ต้องยกแขนขึ้น (หมุน Servo2 ขึ้น) ก่อนหมุน Servo1';
-    const p=R.phi+(k==='s1L'?-8:8);if(Math.abs(p)>170)return 'Servo1 หมุนเกินขีดจำกัด';
-    await to({phi:p},260,id);return}
-  if(k==='stop'){await sleep(500);return}
-  if(k==='grip'){
-    if(holding)return 'แขนกลถือกล่องอยู่แล้ว';
-    const b=Object.keys(boxes).find(c=>Math.abs(boxes[c].phi-R.phi)<4);
-    if(R.r<100||R.h>3||!b){await to({g:1},350,id);await to({g:0},350,id);return 'คีบไม่ได้: มือจับต้องอยู่ที่กล่องและลดแขนลงถึงพื้นก่อน'}
-    await to({g:1},350,id);holding=b;order.push(b);return}
-  if(k==='release'){
-    if(!holding)return 'ไม่มีกล่องให้วาง: ต้องคีบกล่องก่อน';
-    if(R.h>3)return 'วางกล่องกลางอากาศ! ต้องลดแขนลง (หมุน Servo2 ลง) ให้ถึงพื้นก่อน';
-    boxes[holding].phi=R.phi;holding=null;await to({g:0},350,id)}
-}
-const cond={dA:()=>Math.abs(R.phi-A_)<4,dG:()=>Math.abs(R.phi-boxes.green.phi)<4,dB:()=>Math.abs(R.phi-B_)<4};
-async function run(){
-  if(running)return;resetScene();
-  const id=runId,st=nodes.filter(n=>n.k==='start');
-  if(st.length!==1){say('ต้องมีบล็อก Start 1 อัน','bad');return}
-  running=true;let cur=st[0],steps=0,reached=false;
-  const fail=(t,n)=>{hl=n.id;hlBad=true;actSv=0;render();draw();say('❌ '+t,'bad');running=false};
-  while(cur){
-    if(id!==runId)return;
-    hl=cur.id;hlBad=false;actSv=(P.find(p=>p.k===cur.k)||{}).v||0;render();draw();
-    if(++steps>160){fail('ทำงานวนซ้ำนานเกินไป ตรวจสอบเส้นลูกศรและเงื่อนไขอีกครั้ง',cur);return}
-    li(cur.l);
-    let port='out';
-    if(cur.k==='end'){await sleep(400);reached=true;break}
-    if(cur.s==='decision'){const ok=cond[cur.k]();port=ok?'yes':'no';say('🔷 '+cur.l.replace('\n','')+'? → '+(ok?'ใช่':'ไม่')+'  (Servo1 = '+R.phi+'°)');await sleep(280)}
-    else if(cur.k!=='start'){const r=await act(cur,id);if(id!==runId)return;if(r){fail(r,cur);return}}
-    else await sleep(400);
-    const e=edges.find(g=>g.from===cur.id&&g.port===port);
-    if(!e){fail('เส้น flowline ขาดที่บล็อก “'+cur.l.replace('\n',' ')+'”'+(port==='no'?' (ทาง “ไม่”)':'')+' ยังต่อไปไม่ถึง End',cur);return}
-    cur=N(e.to);
-  }
-  hl=null;actSv=0;render();draw();running=false;
-  if(!reached)return;
-  const okR=Math.abs(boxes.red.phi-A_)<4,okG=Math.abs(boxes.green.phi-B_)<4;
-  if(okR&&okG&&!holding&&order[0]==='red'&&order[1]==='green')say('🎉 ภารกิจสำเร็จ! กล่องแดงอยู่ที่จุด A และกล่องเขียวอยู่ที่จุด B ตามลำดับที่โจทย์กำหนด (ผังนี้ใช้ '+nodes.length+' บล็อก)','ok');
-  else if(okR&&okG)say('กล่องอยู่ถูกที่แล้ว แต่ลำดับไม่ตรงโจทย์ — ต้องหยิบกล่องสีแดงก่อน แล้วค่อยหยิบกล่องสีเขียว','bad');
-  else say('ผังงานทำงานถึง End แล้ว แต่ยังไม่ตรงโจทย์: '+(okR?'':'กล่องแดงไม่ได้อยู่ที่จุด A ')+(okG?'':'กล่องเขียวไม่ได้อยู่ที่จุด B'),'bad');
-}
-function solution(){
-  resetScene();nodes=[];edges=[];
-  const cols=[['start','s2Fwd','s5Down','grip','s2Up','s1L','dA'],['stop','s2Down','release','s2Up','s1R','dG','stop','s2Down','grip'],['s2Up','s1R','dB','stop','s2Down','release','end']];
-  const seq=[];
-  cols.forEach((c,ci)=>c.forEach((k,i)=>{const n=mkNode(P.find(p=>p.k===k),440+ci*200,62+i*86);nodes.push(n);seq.push(n)}));
-  for(let i=0;i<seq.length-1;i++)edges.push({from:seq[i].id,port:seq[i].s==='decision'?'yes':'out',to:seq[i+1].id});
-  [[6,5],[12,11],[18,17]].forEach(([d,t])=>edges.push({from:seq[d].id,port:'no',to:seq[t].id}));
-  render();say('นี่คือตัวอย่างเฉลย — กด “เริ่มทำงาน” เพื่อดูแขนกลทำงาน');
-}
-$('run').onclick=run;$('reset').onclick=resetScene;
-$('clear').onclick=()=>{nodes=[];edges=[];resetScene()};
-const pin=$('pin'),pv=$('pv');
-function askPin(){pv.value='';$('pe').textContent='';pin.hidden=false;pv.focus()}
-function okPin(){if(pv.value==='1234'){pin.hidden=true;solution()}else{$('pe').textContent='รหัสไม่ถูกต้อง ลองอีกครั้ง';pv.value='';pv.focus()}}
-$('sol').onclick=askPin;$('pk').onclick=okPin;$('pc').onclick=()=>{pin.hidden=true};
-pv.addEventListener('keydown',e=>{if(e.key==='Enter')okPin();if(e.key==='Escape')pin.hidden=true});
-resetState();render();draw();
-</script>
-</body>
-</html>
+[['90'],['1000','0'],['1','135'],['30','60'],['180','30'],['3','135'],['3','wave'],['500','180'],['90'],['2','135','0','180']].forEach((a,i)=>L[i].a=a);
+const Z=(d,b)=>d+'\n\nvoid setup() {\n'+b+'\n}',O=(...n)=>n.map(x=>`  pinMode(${x}, OUTPUT);\n`).join(''),q=p=>log.filter(e=>e.c==='d'+p).map(e=>e.a),F=p=>{const s=q(p);return s.length?s[s.length-1]:null},
+dur=p=>{const r=[],a=log.filter(e=>e.c==='d'+p);for(let i=0;i+1<a.length;i+=2)r.push(a[i+1].t-a[i].t);return r},
+V=(t,m,h,d,c,a,s,ok)=>L.push({t:'ด่าน '+(L.length+1)+': '+t,m,h,d,c,a,s,ok});
+const lit=()=>log.filter(e=>e.a==1).map(e=>e.c).join(),R3=[['l',25,0x30e060],['l',26,0xffc020],['l',27,0xff3030]],S1='#define servo1 0';
+V('ไฟ LED ติด 💡','ต่อ LED ขา 2 สั่งให้ไฟ <b>ติด</b>','ติด = HIGH ดับ = LOW',[['l',2,0xff4040]],Z('#define LED 2',O('LED')+'  digitalWrite(LED, ___);'),['HIGH'],0,()=>F(2)==1);
+V('LED กะพริบ','กะพริบ <b>3 ครั้ง</b> (ติด-ดับ)','ใช้ for วน 3 รอบ ติดนาน 300 มิลลิวินาที',[['l',2,0xff4040]],Z('#define LED 2',O('LED')+'  for (int i = 0; i < ___; i++) {\n    digitalWrite(LED, HIGH);\n    delay(___);\n    digitalWrite(LED, LOW);\n    delay(300);\n  }'),['3','300'],0,()=>J(q(2))==J(rep([1,0],3))&&dur(2).every(x=>x>=200));
+V('ไฟจราจร 🚦','เขียว → เหลือง → <b>แดง</b>','ไฟเหลืองชื่อ YELLOW และสั่งไฟแดงให้ HIGH',[['l',27,0xff3030],['l',26,0xffc020],['l',25,0x30e060]],Z('#define RED 27\n#define YELLOW 26\n#define GREEN 25',O('RED','YELLOW','GREEN')+'  digitalWrite(GREEN, HIGH);\n  delay(1000);\n  digitalWrite(GREEN, LOW);\n  digitalWrite(___, HIGH);\n  delay(500);\n  digitalWrite(YELLOW, LOW);\n  digitalWrite(RED, ___);'),['YELLOW','HIGH'],0,()=>F(27)==1&&F(26)==0&&F(25)==0&&q(26)[0]==1);
+V('ไฟวิ่ง','LED 3 ดวง (ขา 25-27) ติดทีละดวงจากซ้ายไปขวา','ขาสุดท้ายคือ 27',R3,Z('#define LED1 25\n#define LED2 26\n#define LED3 27',O('LED1','LED2','LED3')+'  for (int p = 25; p <= ___; p++) {\n    digitalWrite(p, HIGH);\n    delay(300);\n    digitalWrite(p, LOW);\n  }'),['27'],0,()=>lit()=='d25,d26,d27');
+V('หรี่ไฟ PWM','ค่อย ๆ สว่างขึ้นจาก 0 ถึง <b>255</b> ทีละ <b>51</b>','analogWrite ใช้ค่า 0-255',[['l',2,0xffe040]],Z('#define LED 2',O('LED')+'  for (int b = 0; b <= ___; b += ___) {\n    analogWrite(LED, b);\n    delay(200);\n  }'),['255','51'],0,()=>J(q(2))==J([0,51,102,153,204,255]));
+V('ไฟเปิดเองเมื่อมืด 🌙','ค่าแสงน้อยกว่า <b>500</b> = มืด ให้ไฟติด (เกมทดสอบ 2 ค่า: 200 และ 900)','ใส่เกณฑ์ 500',[['l',2,0xffe040]],Z('#define LED 2',O('LED')+'  int light = analogRead(34);\n  if (light < ___) {\n    digitalWrite(LED, HIGH);\n  } else {\n    digitalWrite(LED, LOW);\n  }'),['500'],[200,900],s=>F(2)==(s<500?1:0));
+V('พัดลม 🌀','เปิดพัดลม <b>2 วินาที</b> แล้วปิด','2 วินาที = 2000',[['f',5]],Z('#define FAN 5',O('FAN')+'  digitalWrite(FAN, ___);\n  delay(___);\n  digitalWrite(FAN, LOW);'),['HIGH','2000'],0,()=>J(q(5))==J([1,0])&&dur(5)[0]>=2000);
+V('พัดลมอัตโนมัติ','อุณหภูมิมากกว่า <b>30°C</b> พัดลมหมุน (ทดสอบ 24 และ 35)','ใส่เกณฑ์ 30',[['f',5]],Z('#define FAN 5',O('FAN')+'  int temp = analogRead(35);\n  if (temp > ___) {\n    digitalWrite(FAN, HIGH);\n  } else {\n    digitalWrite(FAN, LOW);\n  }'),['30'],[24,35],s=>F(5)==(s>30?1:0));
+V('ความเร็วพัดลม 3 ระดับ','เบา 85 → กลาง <b>170</b> → แรง <b>255</b>','analogWrite ใส่ค่า 0-255',[['f',5]],Z('#define FAN 5',O('FAN')+'  analogWrite(FAN, 85);\n  delay(500);\n  analogWrite(FAN, ___);\n  delay(500);\n  analogWrite(FAN, ___);'),['170','255'],0,()=>J(q(5))==J([85,170,255]));
+V('พัดลม + ไฟเตือน','อุณหภูมิ > 30 พัดลมหมุนและไฟเตือนติด (ทดสอบ 25 และ 36)','เกณฑ์ 30 และไฟติดคือ HIGH',[['f',5],['l',2,0xff4040]],Z('#define FAN 5\n#define LED 2',O('FAN','LED')+'  int temp = analogRead(35);\n  if (temp > ___) {\n    digitalWrite(FAN, HIGH);\n    digitalWrite(LED, ___);\n  } else {\n    digitalWrite(FAN, LOW);\n    digitalWrite(LED, LOW);\n  }'),['30','HIGH'],[25,36],s=>F(5)==(s>30?1:0)&&F(2)==(s>30?1:0));
+V('บัซเซอร์ปี๊บ ๆ 🔔','ดัง <b>2 ครั้ง</b>','วน 2 รอบ',[['b',4]],Z('#define BUZ 4',O('BUZ')+'  for (int i = 0; i < ___; i++) {\n    digitalWrite(BUZ, HIGH);\n    delay(200);\n    digitalWrite(BUZ, LOW);\n    delay(___);\n  }'),['2','200'],0,()=>J(q(4))==J(rep([1,0],2)));
+V('สัญญาณกันขโมย (ระยะ)','ระยะน้อยกว่า <b>20 ซม.</b> บัซเซอร์ดังและไฟติด (ทดสอบ 80 และ 10)','ใส่เกณฑ์ 20',[['b',4],['l',2,0xff4040]],Z('#define BUZ 4\n#define LED 2',O('BUZ','LED')+'  int distance = analogRead(34);\n  if (distance < ___) {\n    digitalWrite(BUZ, HIGH);\n    digitalWrite(LED, HIGH);\n  } else {\n    digitalWrite(BUZ, LOW);\n    digitalWrite(LED, LOW);\n  }'),['20'],[80,10],s=>F(4)==(s<20?1:0)&&F(2)==(s<20?1:0));
+V('กริ่งประตูกดปุ่ม','กดปุ่ม (ค่า <b>1</b>) = เสียงดัง (ทดสอบ 0 และ 1)','ปุ่มถูกกดมีค่า 1',[['b',4]],Z('#define BTN 14\n#define BUZ 4',O('BUZ')+'  int pressed = digitalRead(BTN);\n  if (pressed == ___) {\n    digitalWrite(BUZ, HIGH);\n  } else {\n    digitalWrite(BUZ, LOW);\n  }'),['1'],[0,1],s=>F(4)==s);
+V('สัญญาณ SOS 🆘','สั้น 3 ครั้ง (200) ยาว <b>3</b> ครั้ง (<b>600</b>)','ยาว = delay 600',[['b',4]],Z('#define BUZ 4',O('BUZ')+'  for (int i = 0; i < 3; i++) {\n    digitalWrite(BUZ, HIGH);\n    delay(200);\n    digitalWrite(BUZ, LOW);\n    delay(200);\n  }\n  for (int i = 0; i < ___; i++) {\n    digitalWrite(BUZ, HIGH);\n    delay(___);\n    digitalWrite(BUZ, LOW);\n    delay(200);\n  }'),['3','600'],0,()=>J(dur(4))==J([200,200,200,600,600,600]));
+V('ประตูอัตโนมัติ 🚪','ระยะ &lt; <b>30 ซม.</b> เปิดประตู <b>90°</b> ไม่งั้นปิด 0° (ทดสอบ 100 และ 15)','เกณฑ์ 30 เปิด 90',[['s',0]],Z(S1,INIT+'  int distance = analogRead(34);\n  if (distance < ___) {\n    idektep.setPWM(servo1, 0, angleToPulse(___));\n  } else {\n    idektep.setPWM(servo1, 0, angleToPulse(0));\n  }'),['30','90'],[100,15],s=>fin(0)==(s<30?90:0));
+V('ไม้กั้นรถ','ยก <b>90°</b> ค้าง <b>3 วินาที</b> แล้วลง 0°','3 วินาที = 3000',[['s',0]],Z(S1,INIT+'  idektep.setPWM(servo1, 0, angleToPulse(___));\n  delay(___);\n  idektep.setPWM(servo1, 0, angleToPulse(0));'),['90','3000'],0,()=>J(seq(0))==J([90,0])&&log[1].t-log[0].t>=3000);
+V('หน้าต่างกันฝน 🌧','ฝนตก (ค่า 1) ปิดหน้าต่าง 0° ไม่ตกเปิด <b>90°</b> (ทดสอบ 0 และ 1)','ฝนตกมีค่า 1',[['s',0]],Z(S1,INIT+'  int rain = analogRead(34);\n  int angle;\n  if (rain == ___) {\n    angle = 0;\n  } else {\n    angle = ___;\n  }\n  idektep.setPWM(servo1, 0, angleToPulse(angle));'),['1','90'],[0,1],s=>fin(0)==(s==1?0:90));
+V('กล้องวงจรปิดหมุนส่าย','กวาด 0→180 แล้ว <b>180→0</b>','ลูปที่สองเริ่ม 180 จบ 0',[['s',0]],Z(S1,INIT+'  for (int a = 0; a <= 180; a += 30) {\n    idektep.setPWM(servo1, 0, angleToPulse(a));\n    delay(200);\n  }\n  for (int a = ___; a >= ___; a -= 30) {\n    idektep.setPWM(servo1, 0, angleToPulse(a));\n    delay(200);\n  }'),['180','0'],0,()=>J(seq(0))==J([0,30,60,90,120,150,180,180,150,120,90,60,30,0]));
+V('ที่ปัดน้ำฝน (while)','ปัด 0↔90° จำนวน <b>3 รอบ</b>','while (n < 3)',[['s',0]],Z(S1,INIT+'  int n = 0;\n  while (n < ___) {\n    idektep.setPWM(servo1, 0, angleToPulse(0));\n    delay(300);\n    idektep.setPWM(servo1, 0, angleToPulse(___));\n    delay(300);\n    n++;\n  }'),['3','90'],0,()=>J(seq(0))==J(rep([0,90],3)));
+V('ถังขยะอัตโนมัติ 🗑','ระยะ &lt; <b>20</b> เปิดฝา 120° ค้าง <b>2 วินาที</b> แล้วปิด (ทดสอบ 10 และ 90)','เกณฑ์ 20 และ delay 2000',[['s',0]],Z(S1,INIT+'  idektep.setPWM(servo1, 0, angleToPulse(0));\n  int distance = analogRead(34);\n  if (distance < ___) {\n    idektep.setPWM(servo1, 0, angleToPulse(120));\n    delay(___);\n    idektep.setPWM(servo1, 0, angleToPulse(0));\n  }'),['20','2000'],[10,90],s=>J(seq(0))==J(s<20?[0,120,0]:[0])&&(s>=20||log[2].t-log[1].t>=2000));
+V('ล็อกประตูรหัสผ่าน 🔐','รหัสถูกคือ <b>1234</b> ตรงเปิดประตู 90° ไม่ตรงบัซเซอร์ดัง (ทดสอบ 1234 และ 1111)','secret = 1234 และเปิด 90',[['s',0],['b',4]],Z(S1+'\n#define BUZ 4',O('BUZ')+INIT+'  idektep.setPWM(servo1, 0, angleToPulse(0));\n  int secret = ___;\n  int input = analogRead(34);\n  if (input == secret) {\n    idektep.setPWM(servo1, 0, angleToPulse(___));\n  } else {\n    digitalWrite(BUZ, HIGH);\n  }'),['1234','90'],[1234,1111],s=>s==1234?fin(0)==90&&F(4)!==1:fin(0)==0&&F(4)===1);
+V('เครื่องให้อาหารปลา 🐟','ให้อาหาร <b>2 ครั้ง</b> เว้นห่าง <b>1 วินาที</b>','2 รอบ และ delay 1000',[['s',0]],Z(S1+'\n\nvoid feed() {\n  idektep.setPWM(servo1, 0, angleToPulse(90));\n  delay(500);\n  idektep.setPWM(servo1, 0, angleToPulse(0));\n}',INIT+'  for (int i = 0; i < ___; i++) {\n    feed();\n    delay(___);\n  }'),['2','1000'],0,()=>J(seq(0))==J([90,0,90,0])&&log[2].t-log[1].t>=1000);
+V('หุ่นยนต์ทักทาย 👋','โบกมือ 135↔45° <b>3 ครั้ง</b> พร้อมไฟกะพริบ','วน 3 รอบ มุมยก 135',[['s',0],['l',2,0x3090ff]],Z(S1+'\n#define LED 2',O('LED')+INIT+'  for (int i = 0; i < ___; i++) {\n    idektep.setPWM(servo1, 0, angleToPulse(___));\n    digitalWrite(LED, HIGH);\n    delay(300);\n    idektep.setPWM(servo1, 0, angleToPulse(45));\n    digitalWrite(LED, LOW);\n    delay(300);\n  }'),['3','135'],0,()=>J(seq(0))==J(rep([135,45],3))&&J(q(2))==J(rep([1,0],3)));
+V('ไฟเลี้ยวรถ 🚗','ทิศ 0 = ซ้าย กะพริบ LEFT ทิศ 1 = ขวา กะพริบ <b>RIGHT</b> (3 ครั้ง)','ใส่ชื่อขาของไฟขวา',[['l',25,0xffa020],['l',26,0xffa020]],Z('#define LEFT 25\n#define RIGHT 26',O('LEFT','RIGHT')+'  int dir = analogRead(34);\n  int led = LEFT;\n  if (dir == 1) {\n    led = ___;\n  }\n  for (int i = 0; i < 3; i++) {\n    digitalWrite(led, HIGH);\n    delay(250);\n    digitalWrite(led, LOW);\n    delay(250);\n  }'),['RIGHT'],[0,1],s=>J(q(s?26:25))==J(rep([1,0],3))&&q(s?25:26).length==0);
+V('แถบแสดงระดับน้ำ 📊','ติดไฟตามค่า level (ทดสอบ 1 และ 3 ดวง)','ใส่ชื่อตัวแปร level',R3,Z('#define LED1 25\n#define LED2 26\n#define LED3 27',O('LED1','LED2','LED3')+'  int level = analogRead(34);\n  for (int p = 25; p < 25 + ___; p++) {\n    digitalWrite(p, HIGH);\n  }'),['level'],[1,3],s=>lit()==[...Array(s)].map((_,i)=>'d'+(25+i)).join());
+V('เทอร์โมมิเตอร์ห้อง 🌡','&lt;25 เขียว, &lt;32 เหลือง, นอกนั้นแดง (ทดสอบ 22, 28, 34)','เกณฑ์ 25 และ 32',[R3[2],R3[1],R3[0]],Z('#define GREEN 25\n#define YELLOW 26\n#define RED 27',O('GREEN','YELLOW','RED')+'  int temp = analogRead(35);\n  if (temp < ___) {\n    digitalWrite(GREEN, HIGH);\n  } else if (temp < ___) {\n    digitalWrite(YELLOW, HIGH);\n  } else {\n    digitalWrite(RED, HIGH);\n  }'),['25','32'],[22,28,34],s=>lit()==(s<25?'d25':s<32?'d26':'d27'));
+V('สวนอัจฉริยะ 🌱','ปั๊มน้ำทำงานจนความชื้นถึง <b>60</b> (เพิ่มครั้งละ <b>20</b>) แล้วปิด (ทดสอบ 20 และ 80)','เกณฑ์ 60 เพิ่มทีละ 20',[['f',5]],Z('#define PUMP 5',O('PUMP')+'  int moisture = analogRead(34);\n  while (moisture < ___) {\n    digitalWrite(PUMP, HIGH);\n    delay(300);\n    moisture += ___;\n  }\n  digitalWrite(PUMP, LOW);'),['60','20'],[20,80],s=>J(q(5))==J(s<60?[1,1,0]:[0]));
+V('แอร์ปรับความแรงอัตโนมัติ ❄','แปลงอุณหภูมิ 20-<b>40</b> เป็นแรงลม 0-<b>255</b> ด้วย map()','map(ค่า, เข้าต่ำ, เข้าสูง, ออกต่ำ, ออกสูง)',[['f',5]],Z('#define FAN 5',O('FAN')+'  int temp = analogRead(35);\n  int speed = map(temp, 20, ___, 0, ___);\n  analogWrite(FAN, speed);'),['40','255'],[20,40],s=>F(5)==(s==20?0:255));
+V('รถหุ่นยนต์หลบสิ่งกีดขวาง 🤖','มอเตอร์วิ่งเสมอ ระยะ &lt; <b>20</b> เลี้ยว <b>45°</b> พร้อมเตือน ไม่งั้นตรง 90° (ทดสอบ 100 และ 15)','มอเตอร์ HIGH เกณฑ์ 20 เลี้ยว 45',[['f',5],['s',0],['b',4]],Z(S1+'\n#define MOTOR 5\n#define BUZ 4',O('MOTOR','BUZ')+INIT+'  digitalWrite(MOTOR, ___);\n  int distance = analogRead(34);\n  if (distance < ___) {\n    idektep.setPWM(servo1, 0, angleToPulse(___));\n    digitalWrite(BUZ, HIGH);\n  } else {\n    idektep.setPWM(servo1, 0, angleToPulse(90));\n    digitalWrite(BUZ, LOW);\n  }'),['HIGH','20','45'],[100,15],s=>F(5)==1&&fin(0)==(s<20?45:90)&&F(4)==(s<20?1:0));
+V('โปรเจกต์บ้านอัจฉริยะ 🏠','ไฟติดเสมอ; temp &gt; <b>30</b> พัดลม+เปิดหน้าต่าง; temp &gt; <b>40</b> สัญญาณเตือน (ทดสอบ 22, 32, 45)','ไฟ HIGH เกณฑ์ 30 และ 40',[['s',0],['f',5],['l',2,0xffe040],['b',4]],Z(S1+'\n#define FAN 5\n#define BUZ 4\n#define LED 2',O('FAN','BUZ','LED')+INIT+'  digitalWrite(LED, ___);\n  int temp = analogRead(35);\n  if (temp > ___) {\n    digitalWrite(FAN, HIGH);\n    idektep.setPWM(servo1, 0, angleToPulse(90));\n  } else {\n    digitalWrite(FAN, LOW);\n    idektep.setPWM(servo1, 0, angleToPulse(0));\n  }\n  if (temp > ___) {\n    digitalWrite(BUZ, HIGH);\n  }'),['HIGH','30','40'],[22,32,45],s=>F(2)==1&&F(5)==(s>30?1:0)&&fin(0)==(s>30?90:0)&&(F(4)===1)==(s>40));
+let sens=0;const sleep=ms=>new Promise(r=>setTimeout(r,ms)),AF=Object.getPrototypeOf(async function(){}).constructor,chk=()=>{if(log.length>300)throw Error('ทำงานวนเยอะเกินไป')};
+const ENV={HIGH:1,LOW:0,OUTPUT:1,INPUT:0,INPUT_PULLUP:2,pinMode(){},digitalWrite:(p,v)=>{chk();log.push({c:'d'+p,a:v,t:T});st[p]=v},analogWrite:(p,v)=>{chk();log.push({c:'d'+p,a:v,t:T});st[p]=v/255},analogRead:()=>sens,digitalRead:()=>sens,map:(x,a,b,c,d)=>Math.trunc((x-a)*(d-c)/(b-a)+c)};
+// ---- 3D ----
+const cv=$('cv'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}),S=new THREE.Scene(),C=new THREE.PerspectiveCamera(40,1,.1,100);
+S.add(new THREE.AmbientLight(0xffffff,.75));const dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(5,10,8);S.add(dl);
+const cols=[0xff8a3d,0x2ec4d6,0xf06292],G=[],H=[],GH=[],cur=[0,0,0],tgt=[0,0,0];
+for(let i=0;i<3;i++){const g=new THREE.Group();g.position.x=(i-1)*6;
+const bd=new THREE.Mesh(new THREE.BoxGeometry(3.2,2,1.6),new THREE.MeshStandardMaterial({color:0x2b2f3a}));bd.position.z=-1.1;g.add(bd);
+const hub=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.9,20),new THREE.MeshStandardMaterial({color:0xcccccc}));hub.rotation.x=Math.PI/2;g.add(hub);
+const h=new THREE.Group();h.position.z=.5;const a=new THREE.Mesh(new THREE.BoxGeometry(2.8,.5,.2),new THREE.MeshStandardMaterial({color:cols[i]}));a.position.x=1.2;h.add(a);g.add(h);
+const gh=new THREE.Group();gh.position.z=.2;const b=new THREE.Mesh(new THREE.BoxGeometry(3,.8,.1),new THREE.MeshBasicMaterial({color:0x2ee06a,transparent:true,opacity:.45}));b.position.x=1.2;gh.add(b);g.add(gh);
+S.add(g);G.push(g);H.push(h);GH.push(gh)}
+const rot=a=>Math.PI*(1-a/180);
+let st={},DV=[];const DG=new THREE.Group();S.add(DG);
+function layout(l){const d=l.d||Array.from({length:l.n},(_,i)=>['s',i]),N=d.length;dist=19+Math.max(0,N-3)*3;
+G.forEach((g,k)=>{g.visible=false;GH[k].visible=false});DG.clear();DV=[];
+d.forEach((x,i)=>{const X=(i-(N-1)/2)*6;
+if(x[0]=='s'){const g=G[x[1]];g.visible=true;g.position.x=X;if(l.tg&&l.tg[x[1]]!==undefined){GH[x[1]].visible=true;GH[x[1]].rotation.z=rot(l.tg[x[1]])}return}
+const g=new THREE.Group();g.position.x=X;const M=c=>new THREE.MeshStandardMaterial({color:c}),o={p:x[1],g};
+if(x[0]=='l'){o.m=new THREE.MeshStandardMaterial({color:0x666a74,emissive:x[2],emissiveIntensity:0});const s=new THREE.Mesh(new THREE.SphereGeometry(1,24,16),o.m);s.position.y=.8;const b=new THREE.Mesh(new THREE.CylinderGeometry(.9,1.1,.7,20),M(0x333844));b.position.y=-.5;g.add(s,b)}
+if(x[0]=='f'){const b=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.8,16),M(0x333844));b.rotation.x=Math.PI/2;o.r=new THREE.Group();for(let k=0;k<3;k++){const w=new THREE.Mesh(new THREE.BoxGeometry(2.4,.7,.1),M(0x55b8ff));w.position.x=1.2;const u=new THREE.Group();u.add(w);u.rotation.z=k*2.094;o.r.add(u)}o.r.position.z=.5;g.add(b,o.r)}
+if(x[0]=='b'){const b=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,1.2,24),M(0x222222));b.rotation.x=Math.PI/2;g.add(b);o.rs=[1,2,3].map(k=>{const r=new THREE.Mesh(new THREE.TorusGeometry(1+k*.6,.06,8,32),new THREE.MeshBasicMaterial({color:0xffd866,transparent:true,opacity:.7}));r.position.z=.8;g.add(r);return r})}
+DG.add(g);DV.push(o)})}
+function tick(t){DV.forEach(o=>{const v=st[o.p]||0;if(o.m)o.m.emissiveIntensity=v*1.6;if(o.r)o.r.rotation.z-=v*.4;if(o.rs)o.rs.forEach((r,k)=>{r.visible=v>0;r.scale.setScalar(1+.15*Math.sin(t/60+k))})})}
+let th=0,ph=.15,dist=19,dr=false,px=0,py=0;
+cv.onpointerdown=e=>{dr=true;px=e.clientX;py=e.clientY;cv.setPointerCapture(e.pointerId)};
+cv.onpointerup=()=>dr=false;
+cv.onpointermove=e=>{if(!dr)return;th-=(e.clientX-px)*.008;ph=Math.max(-.4,Math.min(1.1,ph+(e.clientY-py)*.008));px=e.clientX;py=e.clientY};
+function rs(){const w=cv.parentElement.clientWidth-24;R.setSize(w,w*.7)}addEventListener('resize',rs);rs();
+(function fr(){requestAnimationFrame(fr);
+for(let i=0;i<3;i++){cur[i]+=(tgt[i]-cur[i])*.12;H[i].rotation.z=rot(cur[i])}tick(performance.now());
+C.position.set(dist*Math.sin(th)*Math.cos(ph),dist*Math.sin(ph),dist*Math.cos(th)*Math.cos(ph));C.lookAt(0,0,0);
+R.render(S,C)})();
+// ---- game ----
+let lvl=0,clear=0,running=false,teacher=false;
+try{clear=+localStorage.getItem('servoClear')||0}catch(e){}
+const idektep={begin(){},setPWMFreq(){},setPWM(c,o,p){if(log.length>300)throw Error('ทำงานวนเยอะเกินไป');
+const a=Math.max(0,Math.min(180,Math.round((p-100)*180/500)));log.push({c,a,t:T});if(c>=0&&c<3)tgt[c]=a}};
+const angleToPulse=a=>Math.trunc(a*500/180)+100;
+const delay=ms=>{T+=ms;return new Promise(r=>setTimeout(r,Math.min(ms*.5,500)))};
+const say=(t,k)=>{$('msg').className=k||'';$('msg').innerHTML=t};
+function reset(){log=[];T=0;st={};tgt[0]=tgt[1]=tgt[2]=0}
+function full(){let i=0;const v=[...document.querySelectorAll('#code input')].map(x=>x.value.trim()||'___');
+$('full').textContent=HEAD+($('ed')?$('ed').value:L[lvl].c.replace(/___/g,()=>v[i++]))+'\n\nvoid loop() {\n}\n'}
+function nav(){const b=$('lv');b.textContent='';$('pg').firstChild.style.width=Math.min(clear,40)/40*100+'%';L.forEach((_,i)=>{const e=document.createElement('button');e.textContent=i+1;e.disabled=i>clear&&!teacher;
+e.className=(i==lvl?'on ':'')+(i<clear?'done':'');e.onclick=()=>load(i);b.append(e)})}
+function load(i){lvl=i;const l=L[i];$('tt').innerHTML=l.t+(i>=4?' <span class="bd">✍ เขียนเอง</span>':' <span class="bd">เติมคำ</span>');document.querySelector('p.mut').textContent=i>=4?'เขียนโค้ดเอง: ประกาศพอร์ตด้วย #define แล้วสั่งงานให้ครบ จากนั้นกด ▶ รัน':'เติมช่องสีเหลืองให้ครบ แล้วกด ▶ รัน (servo สีเขียวโปร่ง = ตำแหน่งเป้าหมาย)';$('ms').innerHTML=l.m;
+const box=$('code');box.textContent='';$('pt').hidden=$('sn').hidden=i<4;$('pt').innerHTML=i>=4?ports(l):'';if(i>=4)mk(box,l);else l.c.split('___').forEach((p,k,a)=>{box.append(p);if(k<a.length-1){const e=document.createElement('input');e.placeholder='?';e.autocomplete='off';e.spellcheck=false;e.oninput=full;box.append(e)}});
+reset();say('');layout(l);cur.fill(0);nav();full()}
+async function run(){if(running)return;
+const v=[...document.querySelectorAll('#code input')].map(x=>x.value.trim());
+if(v.some(x=>!x)){say('⚠️ ยังเติมช่องสีเหลืองไม่ครบ','bad');return}
+let i=0;const ed=$('ed'),src=ed?ed.value:L[lvl].c.replace(/___/g,()=>v[i++]);reset();running=true;say('⏳ กำลังรัน...');
+try{let js=src.replace(/\bconst\s+/g,'').replace(/^#define\s+(\w+)\s+([^\s\/]+)/gm,'const $1 = $2;')
+.replace(/\b(?:int|float|long|bool)\s+(\w+)\s*(?=[=;])/g,'let $1 ').replace(/\b(?:int|float|long|bool)\s+/g,'')
+.replace(/\bvoid\s+(\w+)\s*\(/g,'async function $1(');
+[...src.matchAll(/\bvoid\s+(\w+)/g)].map(m=>m[1]).filter(n=>n!='setup').forEach(n=>{js=js.replace(new RegExp('(?<!function )\\b'+n+'\\s*\\(','g'),'await '+n+'(')});
+js=js.replace(/\bdelay\(/g,'await delay(')+'\nawait setup();';
+let pass=true,fm='';const E=Object.assign({idektep,delay,angleToPulse},ENV);
+for(const s of (L[lvl].s||[null])){reset();sens=s;if(s!==null)say('⏳ ทดสอบ ค่าเซนเซอร์ = '+s);
+await new AF(...Object.keys(E),js)(...Object.values(E));await delay(300);
+if(!L[lvl].ok(s)){pass=false;fm='❌ เมื่อค่าเซนเซอร์ = '+s+' ผลยังไม่ถูกต้อง ลองกด 💡 คำใบ้';break}await sleep(800)}
+if(pass){say('🎉 ผ่านด่านแล้ว! เก่งมาก'+(lvl<39?' ไปด่านต่อไปได้เลย':' จบทุกด่านแล้ว 🏆'),'ok');
+if(lvl+1>clear){clear=lvl+1;try{localStorage.setItem('servoClear',clear)}catch(e){}}nav()}
+else say(fm||'❌ ผลลัพธ์ยังไม่ตรงภารกิจ ลองเทียบกับ servo สีเขียวโปร่ง หรือกด 💡 คำใบ้','bad')}
+catch(e){say('❌ โค้ดมีข้อผิดพลาด: '+e.message+'<br>ตรวจเครื่องหมาย ; ( ) { } และชื่อตัวแปรอีกครั้ง','bad')}
+running=false}
+$('run').onclick=run;$('rst').onclick=()=>{reset();say('')};$('hint').onclick=()=>say('💡 '+L[lvl].h);
+$('cp').onclick=()=>{try{navigator.clipboard.writeText($('full').textContent);$('cp').textContent='คัดลอกแล้ว ✓'}catch(e){}};
+const teach=()=>{teacher=true;$('tq').innerHTML='🔓 โหมดครู <button class="b s" id="sk" style="padding:4px 10px;margin:0 4px">⏭ ข้ามด่าน</button><button class="b s" id="an" style="padding:4px 10px;margin:0">👁 เฉลย</button>';nav();
+$('sk').onclick=()=>load(Math.min(lvl+1,39));
+$('an').onclick=()=>{const a=L[lvl].a||[];if($('ed')){let k=0;$('ed').value=L[lvl].c.replace(/___/g,()=>a[k++]);full();say('เติมโค้ดเฉลยเต็มแล้ว กด ▶ รัน เพื่อดูผล','ok');return}document.querySelectorAll('#code input').forEach((e,i)=>e.value=a[i]);full();say('👁 เติมเฉลยแล้ว กด ▶ รัน เพื่อดูผล','ok')}};
+$('kb').onclick=()=>{$('tq').innerHTML='<input id="pw" type="password" placeholder="รหัสครู" size="10"> <button class="b s" id="pk" style="padding:4px 10px;margin:0">ตกลง</button>';$('pw').focus();
+$('pk').onclick=()=>{let ok=false;try{ok=btoa($('pw').value)==='R09ST0JPVDIwMjY='}catch(e){}if(ok)teach();else{$('pw').value='';$('pw').placeholder='รหัสผิด'}}};
+const ST1='void setup() {\n  idektep.begin();\n  idektep.setPWMFreq(60);\n\n  // เขียนคำสั่งของคุณที่นี่\n\n}',ST2='void setup() {\n  // เขียนคำสั่งของคุณที่นี่\n\n}';
+function mk(b,l){const t=document.createElement('textarea');t.id='ed';t.spellcheck=false;t.value=l.c.includes('idektep')?ST1:ST2;t.oninput=full;t.onkeydown=e=>{if(e.key=='Tab'){e.preventDefault();ins('  ')}};b.append(t)}
+function ins(s,top){const t=$('ed');if(!t)return;if(top)t.value=s+t.value;else t.setRangeText(s,t.selectionStart,t.selectionEnd,'end');t.focus();full()}
+function ports(l){let k=0;const f=l.c.replace(/___/g,()=>(l.a||[])[k++]||'?'),d=[...f.matchAll(/^#define\s+(\w+)\s+(\d+)/gm)].map(m=>`<span class="chip">#define <b>${m[1]}</b> ${m[2]}</span>`),a=[...new Set([...f.matchAll(/analogRead\((\d+)\)/g)].map(m=>m[1]))].map(x=>`<span class="chip">เซนเซอร์ analogRead(${x})</span>`);return '<b>📌 พอร์ตของภารกิจนี้ — ต้องประกาศเองในโค้ด</b><br>'+d.concat(a).join('')}
+[['#define','#define NAME 0\n',1],['pinMode','pinMode(PIN, OUTPUT);\n'],['setPWM','idektep.setPWM(servo1, 0, angleToPulse(90));\n'],['digitalWrite','digitalWrite(PIN, HIGH);\n'],['analogRead','int value = analogRead(34);\n'],['delay','delay(500);\n'],['for','for (int i = 0; i < 3; i++) {\n  \n}\n'],['if / else','if (value > 0) {\n  \n} else {\n  \n}\n'],['while','while (value < 10) {\n  \n}\n'],['void','void myFunc() {\n  \n}\n']].forEach(s=>{const b=document.createElement('button');b.textContent=s[0];b.onclick=()=>ins(s[1],s[2]);$('sn').append(b)});
+load(Math.min(clear,39));
+</script></body></html>
