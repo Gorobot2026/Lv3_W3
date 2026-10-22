@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Servo Quest – Boxing Arena + Minecraft Block Rescue | 15 ด่าน + 5 ภารกิจ</title>
+<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Servo Quest – Boxing Arena + Minecraft Block Rescue | 15 ด่าน + 5 ภารกิจ + AGV Assembly + Servo Sorting</title>
 <style>
 :root{--bg:#f4f6fb;--fg:#111827;--cd:#fff;--ln:#d1d5db;--ac:#2563eb;--ok:#16a34a;--bd:#dc2626;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b1020;--fg:#e5e7eb;--cd:#151b2e;--ln:#2b3450;--ac:#60a5fa;--ok:#4ade80;--bd:#f87171}}
@@ -830,4 +830,291 @@ updateLevelButtons();
 })();
 
 </script>
+<style>
+/* Industrial training expansion: self-contained within Servo Quest */
+#jumpassembly,#jumpsort{color:#fff;font-weight:850;border:1px solid #507399;white-space:nowrap}
+#jumpassembly{background:linear-gradient(130deg,#164b73,#168aac)}
+#jumpsort{background:linear-gradient(130deg,#7c3b19,#e17c2c)}
+#factory-app[hidden]{display:none!important}
+#factory-app{position:fixed;inset:0;z-index:45;display:flex;flex-direction:column;background:#07101d;color:#d9e8f8;font-family:system-ui,'Noto Sans Thai',sans-serif}
+#factory-app *{box-sizing:border-box}
+#factory-app button,#factory-app textarea{font:inherit}
+.fact-head{background:#111e2f;border-bottom:1px solid #36516a;display:flex;flex-wrap:wrap;align-items:center;gap:9px;padding:9px 16px;min-height:63px}
+.fact-brand{display:flex;align-items:center;gap:10px;margin-right:10px;font-size:20px;font-weight:1000;letter-spacing:.4px;color:#c5ebff}
+.fact-brand small{display:block;color:#96adc6;font-size:10px;font-weight:600;letter-spacing:0}
+.fact-tabs{display:flex;gap:7px}.fact-tab{padding:9px 12px;background:#1c2f42;color:#c9d9ec;border:1px solid #415975;border-radius:7px;cursor:pointer;font-weight:750!important;font-size:12px!important}
+.fact-tab.current{background:#147ba6;color:#fff;border-color:#48c6f1}.fact-tab.sort.current{background:#ba6427;border-color:#ffba74}
+.fact-spacer{flex:1}.fact-count{border-radius:7px;padding:6px 10px;border:1px solid #355773;color:#e7d795;background:#17283c;font-size:12px}
+.fact-close{background:#492735;border:1px solid #9c5c6e;color:#fff;border-radius:7px;cursor:pointer;padding:8px 12px;font-size:12px!important;font-weight:800!important}
+.fact-main{min-height:0;flex:1;display:grid;grid-template-columns:minmax(310px,390px) minmax(0,1fr)}
+.fact-side{overflow-y:auto;background:#111c2b;border-right:1px solid #344557;padding:14px;display:flex;flex-direction:column;gap:10px;scrollbar-color:#567088 transparent}
+.fact-panel{border:1px solid #31465e;background:#182637;border-radius:10px;padding:12px}
+.fact-sectionhead{font-size:12px;font-weight:900;color:#a9e6f9;margin-bottom:8px}
+.fact-levels{display:flex;gap:6px;flex-wrap:wrap}.fact-level{width:40px;height:35px;border-radius:7px;border:1px solid #4f6682;background:#21354a;color:#e6f5ff;cursor:pointer;font-weight:850!important}
+.fact-level.active{background:#f4c562;border-color:#ffde92;color:#27343f}.fact-level.passed:not(.active){color:#b6facb;border-color:#338f6d}.fact-level:disabled{opacity:.4;cursor:default}
+.fact-task-name{font-size:17px;font-weight:900;color:#fff4ce;margin:10px 0 5px}
+.fact-description{font-size:12px;line-height:1.7;color:#c0d2e1}
+.fact-chipbox{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.fact-chip{padding:4px 7px;background:#283b53;border:1px solid #536b80;border-radius:5px;font:11px Consolas,monospace;color:#f2dcb4}
+.fact-label{display:flex;justify-content:space-between;font-weight:850;font-size:12px;color:#b9e5f6;margin-bottom:6px;gap:10px}
+#factory-code{width:100%;min-height:215px;height:30vh;max-height:52vh;resize:vertical;display:block;background:#091422;color:#e9eef7;border:1px solid #355d7d;border-radius:8px;padding:11px;font:12px/1.58 Consolas,'Courier New',monospace;tab-size:2;white-space:pre}
+.fact-buttons{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
+.fact-button{background:#294158;border:1px solid #55748e;color:#eaf5fa;padding:9px 8px;border-radius:8px;cursor:pointer;font-size:12px!important;font-weight:850!important}
+.fact-button.primary{grid-column:span 2;background:linear-gradient(#38bee8,#1583b3);border-color:#80dffc;color:#041825;font-size:15px!important}
+.fact-button.orange{background:linear-gradient(#ffc677,#e28c39);border-color:#ffd399;color:#2c190b}
+.fact-button:disabled{opacity:.5;cursor:default}
+.fact-msg{border:1px solid #3e5771;border-radius:8px;background:#0c1727;padding:10px;font-size:12px;line-height:1.6;color:#bfe2e5;min-height:56px;white-space:pre-line}
+.fact-msg.error{border-color:#a04950;color:#ffb4b4}.fact-msg.good{border-color:#418f74;color:#b2facd}
+.fact-hint{font-size:11px;color:#b1c2d7;line-height:1.8}
+.fact-scene{position:relative;min-height:0;background:radial-gradient(ellipse at center,#1e364c,#07101c 85%);overflow:hidden}
+#factory-canvas{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+.fact-hud{position:absolute;top:14px;left:14px;border:1px solid #4a708a;background:#0d2333dc;border-radius:9px;padding:11px 14px;pointer-events:none;max-width:min(360px,68%)}
+.fact-hud strong{display:block;font-size:16px;color:#c9f3fd}.fact-hud span{display:block;font-size:12px;color:#c9d8e7;margin-top:4px}
+.fact-badge{position:absolute;right:14px;top:14px;background:#142b3ddf;border:1px solid #54778b;border-radius:10px;text-align:center;padding:10px;pointer-events:none;color:#bad7dc;font-size:11px}
+.fact-badge b{display:block;font-size:23px;color:#f9d580}
+.fact-bottom{position:absolute;left:50%;bottom:15px;transform:translateX(-50%);pointer-events:none;background:#091827de;border:1px solid #385777;border-radius:9px;padding:7px 12px;white-space:nowrap;font-size:11px;color:#b8cedf}
+.fact-cameras{position:absolute;bottom:60px;right:14px;display:flex;gap:5px}.fact-cameras button{height:33px;min-width:33px;border:1px solid #5a7e91;border-radius:7px;background:#1b3348d9;color:#e3eff9;cursor:pointer}
+.fact-win[hidden]{display:none!important}.fact-win{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:#040e17ba;padding:16px}
+.fact-win>div{padding:25px;text-align:center;max-width:450px;width:100%;border:2px solid #f3c875;border-radius:17px;background:linear-gradient(145deg,#234554,#192d43);box-shadow:0 18px 50px #000a}
+.fact-win h2{color:#ffe9ac;font-size:25px;margin:10px 0}.fact-win p{font-size:13px;line-height:1.75;color:#d7f1f8}
+.fact-win button{background:#ffce70;color:#142331;border:0;border-radius:8px;font-weight:900!important;cursor:pointer;padding:10px 18px}
+@media(max-width:900px){.fact-main{display:flex;flex-direction:column-reverse;overflow-y:auto}.fact-side{flex:none;overflow:visible}.fact-scene{height:44vh;min-height:320px;flex:none}.fact-head{padding:7px}.fact-brand{font-size:16px}.fact-tab{padding:7px;font-size:11px!important}#factory-code{height:220px}}
+@media(max-width:450px){.fact-count{display:none}.fact-hud strong{font-size:13px}.fact-hud span{font-size:10px}.fact-badge b{font-size:18px}.fact-bottom{font-size:9px;bottom:8px}.fact-cameras{bottom:42px}}
+</style>
+<script>
+/* Factory Academy: code-driven AGV assembly & servo conveyor sorting. */
+(()=>{
+'use strict';
+const host=document.createElement('div');host.id='factory-app';host.hidden=true;
+host.innerHTML=`
+ <header class="fact-head"><div class="fact-brand">🏭 <div>ROBOT FACTORY<small>AGV Assembly · Smart Sorting · Servo Coding Lab</small></div></div>
+ <div class="fact-tabs"><button class="fact-tab" id="factory-tab-assembly">🤖 ประกอบรถ AGV</button><button class="fact-tab sort" id="factory-tab-sorting">📦 คัดแยกสินค้า</button></div>
+ <div class="fact-spacer"></div><span class="fact-count" id="factory-progress">🏆 0/5</span><button id="factory-close" class="fact-close">✕ กลับหน้าเกม</button></header>
+ <div class="fact-main"><aside class="fact-side">
+ <div class="fact-panel"><div class="fact-sectionhead">🧩 เลือกภารกิจ</div><div class="fact-levels" id="factory-levels"></div><div class="fact-task-name" id="factory-task"></div><div class="fact-description" id="factory-desc"></div><div class="fact-chipbox" id="factory-chips"></div></div>
+ <div class="fact-panel"><div class="fact-label"><span>💻 C++-style Servo Control</span><span id="factory-lines">READY</span></div><textarea id="factory-code" spellcheck="false"></textarea><div class="fact-buttons"><button id="factory-run" class="fact-button primary">▶ RUN • เริ่มการผลิต</button><button id="factory-example" class="fact-button">📝 ตัวอย่างโค้ด</button><button id="factory-reset" class="fact-button">↻ รีเซ็ตฉาก</button><button id="factory-hint" class="fact-button orange">💡 คำใบ้</button><button id="factory-next" class="fact-button" disabled>ถัดไป ➜</button></div></div>
+ <div class="fact-msg" id="factory-message" role="status">เขียนโค้ดควบคุมแขนกลแล้วกด RUN เพื่อทดลอง!</div>
+ <div class="fact-hint" id="factory-help"></div></aside>
+ <div class="fact-scene" id="factory-scene"><canvas id="factory-canvas"></canvas><div class="fact-hud"><strong id="factory-world-title">🤖 AGV ASSEMBLY LINE</strong><span id="factory-world-detail">หยิบชิ้นส่วน → ย้ายไปจุดประกอบ → ปล่อยกริปเปอร์</span></div><div class="fact-badge"><span id="factory-meter-title">ประกอบแล้ว</span><b id="factory-meter">0 / 2</b></div>
+ <div class="fact-cameras"><button id="factory-left">↶</button><button id="factory-home">⌂</button><button id="factory-right">↷</button><button id="factory-plus">＋</button><button id="factory-minus">−</button></div>
+ <div class="fact-bottom">🖱 ลากหมุนมุมมอง • เลื่อนล้อเมาส์ซูม • จำลองการทำงานของ Servo ในโรงงาน</div>
+ <div class="fact-win" hidden id="factory-win"><div><div style="font-size:60px" id="factory-win-icon">🏆</div><h2 id="factory-win-title">ภารกิจสำเร็จ!</h2><p id="factory-win-detail"></p><button id="factory-win-next">ไปภารกิจถัดไป ➜</button></div></div>
+ </div></div>`;
+document.body.append(host);
+const jumpbox=document.getElementById('jumppig')||document.getElementById('jumpbox');
+for(const [id,label] of [['jumpassembly','🏭 ประกอบรถ AGV'],['jumpsort','📦 คัดแยก Servo']]){
+ const b=document.createElement('button');b.type='button';b.className='b';b.id=id;b.textContent=label;
+ jumpbox?.parentNode?.insertBefore(b,jumpbox.nextSibling);
+ b.onclick=()=>show(id==='jumpassembly'?'assembly':'sorting');
+}
+const $=id=>document.getElementById(id);
+const allParts=['WHEEL_FL','WHEEL_FR','WHEEL_RL','WHEEL_RR','MOTOR_L','MOTOR_R','BATTERY','CONTROLLER','SENSOR','COVER'];
+const partNames={WHEEL_FL:'ล้อหน้าซ้าย',WHEEL_FR:'ล้อหน้าขวา',WHEEL_RL:'ล้อหลังซ้าย',WHEEL_RR:'ล้อหลังขวา',MOTOR_L:'มอเตอร์ซ้าย',MOTOR_R:'มอเตอร์ขวา',BATTERY:'แบตเตอรี่',CONTROLLER:'บอร์ดควบคุม',SENSOR:'เซนเซอร์',COVER:'ฝาครอบตัวรถ'};
+const wheels=allParts.slice(0,4);
+const buildStages=[
+ {title:'ติดตั้งล้อคู่หน้า',desc:'โรงงานเริ่มจากโครงรถ AGV ที่วางบนแท่น ใช้แขนกลหยิบล้อคู่หน้าให้ตรงตำแหน่ง',need:wheels.slice(0,2),pre:[]},
+ {title:'ติดตั้งล้อทั้ง 4',desc:'ฝึก Pick & Place ติดตั้งล้อหน้าและล้อหลังให้ครบสี่ตำแหน่ง',need:wheels,pre:[]},
+ {title:'ประกอบชุดขับเคลื่อน',desc:'รถมีล้อครบแล้ว ต่อมอเตอร์สองข้างและแบตเตอรี่เป็นชุดกำลังไฟ',need:['MOTOR_L','MOTOR_R','BATTERY'],pre:wheels},
+ {title:'ติดตั้งสมองและเซนเซอร์',desc:'ติดตั้งบอร์ดควบคุม เซนเซอร์ตรวจจับ และฝาครอบบน AGV ที่มีชุดขับเคลื่อนแล้ว',need:['CONTROLLER','SENSOR','COVER'],pre:allParts.slice(0,7)},
+ {title:'AGV SMART FACTORY',desc:'ประกอบรถ AGV ทั้งคันจากชิ้นส่วนทั้งหมด 10 ชิ้นตามขั้นตอนผลิตจริงแบบจำลอง',need:allParts,pre:[]}
+];
+const packing=(raw)=>raw.map((x,i)=>({color:x[0],kind:x[1]||'NORMAL',id:i+1}));
+const sortStages=[
+ {title:'คัดแยก 2 สี',desc:'เซนเซอร์อ่านสี RED และ BLUE ใช้ servo6 หมุนไปช่องซ้าย (35°) หรือช่องกลาง (90°)',items:packing([['RED'],['BLUE'],['RED'],['BLUE'],['BLUE'],['RED']]),get:p=>p.color==='RED'?35:90,groups:['RED → 35°','BLUE → 90°']},
+ {title:'คัดแยก 3 สี',desc:'แยก RED ไป 35° / BLUE ไป 90° / GREEN ไป 145°',items:packing([['RED'],['BLUE'],['GREEN'],['GREEN'],['RED'],['BLUE'],['RED'],['GREEN'],['BLUE']]),get:p=>({RED:35,BLUE:90,GREEN:145})[p.color],groups:['RED → 35°','BLUE → 90°','GREEN → 145°']},
+ {title:'แยกประเภทวัสดุ',desc:'ตรวจประเภทด้วย readType(): METAL / PLASTIC / PAPER ลงช่องซ้าย กลาง ขวา ตามลำดับ',items:packing([['BLUE','PLASTIC'],['RED','METAL'],['GREEN','PAPER'],['GREEN','PAPER'],['RED','METAL'],['BLUE','PLASTIC'],['RED','METAL'],['BLUE','PLASTIC'],['GREEN','PAPER']]),get:p=>({METAL:35,PLASTIC:90,PAPER:145})[p.kind],groups:['METAL → 35°','PLASTIC → 90°','PAPER → 145°']},
+ {title:'คัดแยกตามคำสั่งซื้อ',desc:'ตรวจอ่านป้าย EXPRESS / STANDARD / RETURN ด้วย readType() แล้วเปลี่ยนมุม Servo',items:packing([['RED','EXPRESS'],['BLUE','STANDARD'],['GREEN','RETURN'],['RED','EXPRESS'],['GREEN','RETURN'],['BLUE','STANDARD'],['RED','EXPRESS'],['BLUE','STANDARD'],['GREEN','RETURN']]),get:p=>({EXPRESS:35,STANDARD:90,RETURN:145})[p.kind],groups:['EXPRESS → 35°','STANDARD → 90°','RETURN → 145°']},
+ {title:'SMART QUALITY CONTROL',desc:'แยกสินค้าที่ FRAGILE ไป 35° ก่อน! หากไม่เปราะบางและเป็น BLUE ไป 90° นอกนั้นไป 145°',items:packing([['BLUE','NORMAL'],['RED','FRAGILE'],['GREEN','NORMAL'],['BLUE','FRAGILE'],['RED','NORMAL'],['GREEN','FRAGILE'],['BLUE','NORMAL'],['RED','NORMAL'],['GREEN','NORMAL'],['RED','FRAGILE'],['BLUE','NORMAL'],['GREEN','FRAGILE']]),get:p=>p.kind==='FRAGILE'?35:p.color==='BLUE'?90:145,groups:['FRAGILE → 35°','BLUE (ทั่วไป) → 90°','อื่น ๆ → 145°']}
+];
+const row=(id)=>`moveTo("${id}");\nservo5.setPosition(20);  // จับ${partNames[id]}\nmoveTo("AGV");\nservo5.setPosition(90);  // ปล่อยเข้าตำแหน่ง\n`;
+for(const st of buildStages)st.code='// คำสั่งแขนกลประกอบ AGV\n// servo5: 20° = จับ, 90° = ปล่อย\n'+st.need.map(row).join('\n');
+for(let i=0;i<sortStages.length;i++){
+ let conds=i===0?[['readColor','RED',35]]:i===1?[['readColor','RED',35],['readColor','BLUE',90]]:i===2?[['readType','METAL',35],['readType','PLASTIC',90]]:i===3?[['readType','EXPRESS',35],['readType','STANDARD',90]]:[['readType','FRAGILE',35],['readColor','BLUE',90]];
+ const last=i===0?90:145;
+ const ifchain=conds.map(([fn,val,angle],j)=>`${j?'else ':''}if (${fn}() == "${val}") {\n    servo6.setPosition(${angle});\n  } `).join('');
+ sortStages[i].code=`// เซนเซอร์และ Servo คัดแยกสินค้าบนสายพาน\nfor (int i = 0; i < ${sortStages[i].items.length}; i++) {\n  ${ifchain}else {\n    servo6.setPosition(${last});\n  }\n  nextItem();\n}`;
+}
+let mode='assembly',level=0,ready=false,active=false,scene,camera,renderer,world,armHolder,armModel,armJoints={},dock,gate,packages=[],partVisuals={},installed={},heldMesh=null,liveBox=null;
+let orbit=.75,elev=.70,dist=15.5,drag=null,events=[],tick=0,eventStart=0,running=false,success=false,passed=(()=>{try{return JSON.parse(localStorage.getItem('factory-quest-passed-v1')||'{"assembly":[],"sorting":[]}')}catch{return {assembly:[],sorting:[]}}})();
+const progress=()=>passed[mode]||[];
+function message(t,status=''){const e=$('factory-message');e.className='fact-msg'+(status?' '+status:'');e.textContent=t}
+function task(){return mode==='assembly'?buildStages[level]:sortStages[level]}
+function save(){try{localStorage.setItem('factory-quest-passed-v1',JSON.stringify(passed))}catch{}}
+function show(kind){if(!host.hidden)resetAnimation();host.hidden=false;active=true;mode=kind;level=0;loadLevel();init();resize()}
+function hide(){host.hidden=true;active=false;resetAnimation()}
+function setMode(m){if(running)return;mode=m;level=0;loadLevel()}
+function loadLevel(){resetAnimation();success=false;$('factory-win').hidden=true;
+ $('factory-tab-assembly').classList.toggle('current',mode==='assembly');$('factory-tab-sorting').classList.toggle('current',mode==='sorting');
+ const st=task();$('factory-task').textContent=`ด่าน ${level+1} / 5: ${st.title}`;$('factory-desc').textContent=st.desc;
+ $('factory-world-title').textContent=mode==='assembly'?'🤖 AGV ROBOT ASSEMBLY':'📦 SERVO SMART SORTING';
+ $('factory-world-detail').textContent=mode==='assembly'?'ROBOT ARM → PICK → ASSEMBLE AGV':'CONVEYOR → SENSOR → SERVO GATE → BIN';
+ $('factory-meter-title').textContent=mode==='assembly'?'ชิ้นส่วนที่ติดตั้ง':'คัดแยกสำเร็จ';
+ $('factory-chips').innerHTML='';(mode==='assembly'?st.need.map(k=>`${k}: ${partNames[k]}`):st.groups).forEach(t=>{const c=document.createElement('span');c.className='fact-chip';c.textContent=t;$('factory-chips').append(c)});
+ $('factory-help').innerHTML=mode==='assembly'?'<b>คำสั่ง:</b> <code>moveTo("WHEEL_FL");</code> ย้ายแขนกลไปหยิบชิ้นส่วน, <code>servo5.setPosition(20);</code> หนีบ, <code>moveTo("AGV");</code> ย้ายไปแท่นประกอบ, <code>servo5.setPosition(90);</code> ปล่อยชิ้นส่วน · <code>servo1–4.setPosition(0–180);</code> ปรับมุมข้อต่อ':'<b>คำสั่ง:</b> <code>readColor()</code> อ่านสี, <code>readType()</code> อ่านประเภท, <code>servo6.setPosition(35/90/145);</code> กำหนดช่องซ้าย/กลาง/ขวา, <code>nextItem();</code> ส่งสินค้าเข้าสู่ช่อง · รองรับ <code>if/else</code> และ <code>for</code>';
+ $('factory-code').value=st.code;$('factory-next').disabled=!(progress()[level])||level===4;
+ $('factory-run').disabled=false;$('factory-run').textContent='▶ RUN • เริ่มการผลิต';$('factory-lines').textContent='READY';
+ message(mode==='assembly'?'🏗️ สั่งแขนกลหยิบชิ้นส่วนจากชั้นวาง แล้วประกอบเป็นรถ AGV!':'📦 เขียนเงื่อนไข if/else แล้วสั่ง Servo เปิดช่องคัดแยกสินค้า');
+ const levels=$('factory-levels');levels.replaceChildren();let unlocked=0;while(progress()[unlocked]&&unlocked<4)unlocked++;
+ for(let i=0;i<5;i++){const b=document.createElement('button');b.className='fact-level'+(i===level?' active':'')+(progress()[i]?' passed':'');b.textContent=progress()[i]?'✓'+(i+1):i>unlocked?'🔒':String(i+1);b.disabled=i>unlocked;b.onclick=()=>{level=i;loadLevel()};levels.append(b)}
+ $('factory-progress').textContent=`🏆 ${progress().filter(Boolean).length}/5 · ${mode==='assembly'?'ประกอบ AGV':'คัดแยกสินค้า'}`;
+ resetWorld();
+}
+// A small explicit C++-style parser. No eval or arbitrary browser code is executed.
+function tokenize(src){const out=[];const re=/\s+|\/\/[^\n]*|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|==|!=|<=|>=|\+\+|[A-Za-z_]\w*|\d+|[{}();.=<>+\-,]/gy;
+ let pos=0;while(pos<src.length){re.lastIndex=pos;const m=re.exec(src);if(!m)throw Error('ไม่รู้จักอักขระที่ตำแหน่ง '+(pos+1));pos=re.lastIndex;if(!/^\s|^\/\//.test(m[0]))out.push(m[0]);if(out.length>3500)throw Error('โค้ดยาวเกินกำหนด')}return out}
+function parse(src){const t=tokenize(src);let p=0;const get=()=>t[p++],peek=()=>t[p],need=x=>{let v=get();if(v!==x)throw Error(`ต้องมี ${x} แต่พบ ${v??'จบโค้ด'}`)};
+ function atom(){const v=get();if(v===undefined)throw Error('โค้ดสิ้นสุดก่อนจบคำสั่ง');if(/^\d+$/.test(v))return Number(v);if(/^['"]/.test(v))return v.slice(1,-1);return {ident:v}}
+ function block(){if(peek()==='{'){get();const items=[];while(peek()!=='}'){if(peek()===undefined)throw Error('ลืมปิด }');items.push(stmt());if(items.length>300)throw Error('คำสั่งในบล็อกมากเกินไป')}get();return items}return [stmt()]}
+ function stmt(){const word=get();if(!word)throw Error('คำสั่งไม่สมบูรณ์');
+  if(word==='for') {need('(');need('int');let v=get();if(!/^[A-Za-z_]\w*$/.test(v))throw Error('ชื่อตัวแปร for ไม่ถูกต้อง');need('=');const start=atom();need(';');need(v);let op=get();if(!['<','<='].includes(op))throw Error('for ใช้ < หรือ <= เท่านั้น');const end=atom();need(';');need(v);need('++');need(')');if(typeof start!=='number'||typeof end!=='number')throw Error('for ต้องกำหนดช่วงเป็นจำนวนเต็ม');let repeat=end-start+(op==='<='?1:0);if(repeat<0||repeat>30)throw Error('for ต้องทำซ้ำ 0–30 ครั้ง');return {type:'for',repeat,body:block()}}
+  if(word==='if'){need('(');const fn=get();if(!['readColor','readType'].includes(fn))throw Error('if ใช้ readColor() หรือ readType()');need('(');need(')');const cmp=get();if(cmp!=='=='&&cmp!=='!=')throw Error('if ใช้ == หรือ !=');const value=atom();if(typeof value!=='string')throw Error('เทียบค่ากับข้อความเช่น "RED"');need(')');const yes=block();let no=[];if(peek()==='else'){get();no=peek()==='if'?[stmt()]:block()}return {type:'if',fn,cmp,value,yes,no}}
+  if(/^servo[1-6]$/.test(word)){need('.');need('setPosition');need('(');const angle=atom();need(')');need(';');if(typeof angle!=='number'||angle<0||angle>180)throw Error('มุม Servo ต้องอยู่ระหว่าง 0–180 องศา');return {type:'servo',num:Number(word.slice(-1)),angle}}
+  if(['moveTo','nextItem','wait'].includes(word)){need('(');let value=word==='nextItem'?null:atom();need(')');need(';');if(word==='moveTo'&&typeof value!=='string')throw Error('moveTo ต้องใส่ชื่อชิ้นส่วนในเครื่องหมายคำพูด');if(word==='wait'&&(typeof value!=='number'||value>2000))throw Error('wait ใช้ตัวเลข 0–2000');return {type:word,value}}
+  throw Error('ไม่รองรับคำสั่ง '+word+' • ใช้ Servo / moveTo / if / for / nextItem / wait');}
+ const result=[];while(p<t.length){result.push(stmt());if(result.length>300)throw Error('โค้ดยาวเกินไป')}return result}
+function simulate(ast){const st=task(),events=[],stats={errors:[],count:0};const state={where:'HOME',held:null,grip:90,angles:{},placed:new Set(st.pre||[]),gate:90,item:0,good:0};
+ function record(e){events.push(e);if(events.length>460)throw Error('คำสั่งจำนวนมากเกินไป (สูงสุด 460 เหตุการณ์)')}
+ const error=e=>{throw Error('คำสั่งที่ '+(stats.count)+': '+e)};
+ function execute(nodes){for(const cmd of nodes){stats.count++;if(stats.count>600)throw Error('โปรแกรมทำงานมากกว่า 600 คำสั่ง');
+  if(cmd.type==='for'){for(let n=0;n<cmd.repeat;n++)execute(cmd.body);continue}
+  if(cmd.type==='if'){if(mode!=='sorting')error('ใช้ if เซนเซอร์ในด่านคัดแยกสินค้าเท่านั้น');if(state.item>=st.items.length)error('อ่านเซนเซอร์หลังสินค้าหมดแล้ว');let item=st.items[state.item],val=cmd.fn==='readColor'?item.color:item.kind;execute((cmd.cmp==='=='?val===cmd.value:val!==cmd.value)?cmd.yes:cmd.no);continue}
+  if(cmd.type==='moveTo'){if(mode!=='assembly')error('moveTo ใช้ในโหมดประกอบ AGV');if(cmd.value!=='AGV'&&!allParts.includes(cmd.value))error('ไม่มีตำแหน่ง '+cmd.value);if(cmd.value!=='AGV'&&!st.need.includes(cmd.value))error('ชิ้นส่วน '+cmd.value+' ไม่ใช่ของภารกิจนี้');state.where=cmd.value;record({kind:'move',target:cmd.value});continue}
+  if(cmd.type==='servo'){
+   if(mode==='assembly'){
+    if(cmd.num===6)error('servo6 ใช้สำหรับสายพานคัดแยกสินค้า');
+    if(cmd.num===5){let wasClosed=state.grip<=35;state.grip=cmd.angle;
+     if(cmd.angle<=35&&!wasClosed){if(state.held)error('กริปเปอร์กำลังถือ '+state.held);if(!st.need.includes(state.where)||state.placed.has(state.where))error('ต้อง moveTo("ชื่อชิ้นส่วน") ที่ยังไม่ประกอบ ก่อนสั่งจับ');state.held=state.where;record({kind:'pick',part:state.held,angle:cmd.angle})}
+     else if(cmd.angle>=75&&wasClosed){if(!state.held)error('กริปเปอร์ไม่ได้ถือชิ้นส่วน');if(state.where!=='AGV')error('ต้องย้ายไปตำแหน่ง AGV ก่อนปล่อยชิ้นส่วน');if(state.placed.has(state.held))error('ประกอบชิ้นนี้ซ้ำแล้ว');state.placed.add(state.held);record({kind:'place',part:state.held,done:state.placed.size-st.pre.length,angle:cmd.angle});state.held=null}
+     else record({kind:'grip',angle:cmd.angle});
+    }else {state.angles[cmd.num]=cmd.angle;record({kind:'joint',num:cmd.num,angle:cmd.angle})}
+   }else{
+    if(cmd.num!==6)error('โหมดคัดแยกใช้ servo6 เท่านั้น');state.gate=cmd.angle;record({kind:'gate',angle:cmd.angle,item:state.item})
+   }continue;
+  }
+  if(cmd.type==='nextItem'){if(mode!=='sorting')error('nextItem ใช้ในด่านสายพาน');if(state.item>=st.items.length)error('สินค้าบนสายพานหมดแล้ว');const it=st.items[state.item],expected=st.get(it),actual=state.gate;
+   const bin=a=>Math.abs(a-35)<=12?35:Math.abs(a-90)<=12?90:Math.abs(a-145)<=12?145:null;
+   const ok=bin(actual)===expected;record({kind:'ship',item:{...it},index:state.item,actual,expected,ok});state.item++;if(ok)state.good++;else stats.errors.push(`กล่อง ${state.item} (${it.kind==='NORMAL'?it.color:it.kind}): สั่ง ${actual}° แต่ควรเป็น ${expected}°`);continue}
+  if(cmd.type==='wait'){record({kind:'wait',ms:Math.min(1500,cmd.value)});continue}
+ }}
+ execute(ast);
+ const valid=mode==='assembly'?st.need.every(p=>state.placed.has(p))&&state.held===null:state.item===st.items.length&&state.good===st.items.length;
+ if(mode==='assembly'&&!valid)stats.errors.push('ยังติดตั้งไม่ครบ: '+st.need.filter(p=>!state.placed.has(p)).join(', '));
+ if(mode==='sorting'&&state.item<st.items.length)stats.errors.push(`ยังไม่ได้คัดแยก ${st.items.length-state.item} กล่อง`);
+ return {events,valid,errors:stats.errors,processed:mode==='assembly'?state.placed.size-st.pre.length:state.item,good:state.good,total:mode==='assembly'?st.need.length:st.items.length};
+}
+/* 3D construction helpers */
+function material(hex,metal=.2){return new THREE.MeshStandardMaterial({color:hex,metalness:metal,roughness:.46})}
+function cube(parent,w,h,d,color,x,y,z,options={}){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material(color,options.metal??.18));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+function cyl(parent,r1,r2,h,color,x,y,z,segments=18){const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,segments),material(color,.4));m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m}
+function labelSprite(text,bg='#12354e',fg='#ffffff'){const cv=document.createElement('canvas');cv.width=512;cv.height=100;const c=cv.getContext('2d');c.fillStyle=bg;c.fillRect(0,0,512,100);c.strokeStyle='#92b6cc';c.lineWidth=3;c.strokeRect(3,3,506,94);c.fillStyle=fg;c.font='bold 36px Arial';c.textAlign='center';c.textBaseline='middle';c.fillText(text,256,50);const tx=new THREE.CanvasTexture(cv),sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,transparent:true}));sp.scale.set(2.4,.47,1);return sp}
+function makePart(id){const g=new THREE.Group();if(id.startsWith('WHEEL')){const t=cyl(g,.34,.34,.20,0x171d26,0,0,0,24);t.rotation.z=Math.PI/2;const rim=cyl(g,.2,.2,.218,0xb4c3d1,0,0,0,20);rim.rotation.z=Math.PI/2;cyl(g,.05,.05,.23,0x577489,0,0,0).rotation.z=Math.PI/2}
+ else if(id.startsWith('MOTOR')){cube(g,.55,.34,.40,0xa8b8c7,0,0,0);const c=cyl(g,.13,.13,.6,0x526b89,0,0,0);c.rotation.z=Math.PI/2}
+ else if(id==='BATTERY'){cube(g,.78,.45,.48,0x178ac1,0,0,0);cube(g,.24,.055,.16,0xfbd369,-.22,.26,0)}
+ else if(id==='CONTROLLER'){cube(g,.85,.11,.58,0x1b9c60,0,0,0);for(let x of [-.27,0,.27])cube(g,.15,.12,.16,0x202935,x,.1,0);cube(g,.36,.13,.13,0xfee479,0,.1,-.17)}
+ else if(id==='SENSOR'){cube(g,.67,.28,.31,0x9fbac9,0,0,0);for(let x of [-.2,.2]){const eye=cyl(g,.11,.11,.05,0x233e59,x,0,.17,20);eye.rotation.x=Math.PI/2;}}
+ else if(id==='COVER'){cube(g,1.6,.14,1.2,0xe1b135,0,0,0);cube(g,.75,.08,.32,0x213d56,0,.12,-.28)}
+ return g}
+const partSlots={WHEEL_FL:[-.91,.28,-.70],WHEEL_FR:[.91,.28,-.70],WHEEL_RL:[-.91,.28,.70],WHEEL_RR:[.91,.28,.70],MOTOR_L:[-.45,.46,.1],MOTOR_R:[.45,.46,.1],BATTERY:[0,.55,.48],CONTROLLER:[0,.57,-.40],SENSOR:[0,.44,-1.0],COVER:[0,.80,0]};
+function rotateJoint(obj,axis,value){if(obj){obj.userData.factRotAxis=axis;obj.userData.factRotTarget=value}}
+function arrangeArm(target){if(!armModel)return;rotateJoint(armJoints.S1_Base,'y',target==='AGV'?-0.65:target==='HOME'?0.1:1.0);rotateJoint(armJoints.S2_Shoulder,'z',target==='AGV'?.35:target==='HOME'?0:.72);rotateJoint(armJoints.S3_Elbow,'z',target==='AGV'?.24:-.30)}
+function installPart(id){if(!dock)return;const g=makePart(id),s=partSlots[id];g.position.set(...s);dock.add(g);installed[id]=g}
+function factoryBase(){world=new THREE.Group();scene.add(world);cube(world,17,.25,11,0x1b3043,0,-.28,0);const grid=new THREE.GridHelper(17,17,0x426077,0x264158);grid.position.y=-.143;world.add(grid);
+ for(let x of [-7.7,7.7])for(let z of [-4.8,4.8]){cube(world,.55,.7,.55,0x29485b,x,-.68,z)}
+ for(let x of [-7,7]){cube(world,.13,.14,9.9,0xe5bd53,x,-.09,0)}
+ for(let z of [-4.8,4.8])cube(world,14,.14,.12,0xdfa83b,0,-.09,z);
+ for(let i=0;i<5;i++){const x=-6+i*3.0;const m=cube(world,.12,3.6,.12,0x1f748d,x,1.5,-4.7);cube(world,2.8,.14,.2,0x4b6572,x+1,3.25,-4.7)}
+}
+function resetWorld(){if(!ready)return;while(world?.children?.length){const o=world.children[0];world.remove(o)}scene.remove(world);world=null;installed={};partVisuals={};armModel=null;armJoints={};dock=null;gate=null;liveBox=null;heldMesh=null;
+ factoryBase();if(mode==='assembly')makeAssembly();else makeSorting();updateMeter(0,task().need?.length||task().items.length);
+}
+function makeAssembly(){const st=task();
+ // Tooling, robot pedestal and staging pallets
+ cube(world,3.5,.45,3.2,0x334e62,-3.15,-.03,1.2);cube(world,3.25,.16,2.95,0xd6aa39,-3.15,.26,1.2);
+ const station=labelSprite('ROBOT ARM • PICK & PLACE');station.position.set(-3.1,2.9,1.65);world.add(station);
+ const rack=new THREE.Group();rack.position.set(-4.2,.4,-2.1);world.add(rack);cube(rack,6.2,.22,2.3,0x496073,0,0,0);
+ const rackLabel=labelSprite('AGV COMPONENTS');rackLabel.position.set(0,1.55,-.8);rack.add(rackLabel);
+ st.need.forEach((id,i)=>{let obj=makePart(id);obj.position.set(-2.40+(i%5)*1.12,.5+Math.floor(i/5)*.7,-.5+Math.floor(i/5)*1.05);rack.add(obj);partVisuals[id]=obj;let tag=labelSprite(id,'#213d58','#f4dd9a');tag.scale.set(.92,.2,1);tag.position.set(obj.position.x,.87+Math.floor(i/5)*.7,obj.position.z);rack.add(tag)});
+ dock=new THREE.Group();dock.position.set(2.55,.45,1);world.add(dock);
+ cube(world,4.0,.35,3.5,0x48718b,2.55,.10,1);cube(world,3.45,.08,3,0xffca49,2.55,.32,1);
+ const cb=labelSprite('AGV ASSEMBLY STATION');cb.position.set(2.6,2.85,2.1);world.add(cb);
+ cube(dock,1.72,.30,2.0,0x3f5366,0,.24,0);cube(dock,1.45,.09,1.78,0xe7b730,0,.42,0);
+ cyl(dock,.15,.15,.09,0xdce8ee,0,.52,.75);
+ st.pre.forEach(installPart);
+ try{const obj=customGLB64($('robot-arm-model-data').textContent);const bb=new THREE.Box3().setFromObject(obj),sz=bb.getSize(new THREE.Vector3());const sc=2.8/Math.max(sz.x,sz.y,sz.z,.01);obj.scale.setScalar(sc);
+ const b2=new THREE.Box3().setFromObject(obj);obj.position.set(-(b2.max.x+b2.min.x)/2,.33-b2.min.y,-(b2.max.z+b2.min.z)/2);const wrapper=new THREE.Group();wrapper.position.set(-3.15,.33,1.2);world.add(wrapper);wrapper.add(obj);armModel=obj;armHolder=wrapper;
+ ['S1_Base','S2_Shoulder','S3_Elbow','S4_Wrist','S5_Finger_L','S5_Finger_R'].forEach(n=>{armJoints[n]=obj.getObjectByName(n)})}catch(e){console.warn('AGV robot model fallback:',e);const wrapper=new THREE.Group();world.add(wrapper);wrapper.position.set(-3.15,.4,1.2);cube(wrapper,.65,.4,.7,0xf4cd3b,0,.1,0);cube(wrapper,.4,1.35,.45,0x16a5ab,0,1,0);cube(wrapper,1.1,.3,.3,0xd9ebec,.38,1.55,0);armModel=wrapper;armHolder=wrapper;}
+ arrangeArm('HOME');
+}
+function makeSorting(){// realistic miniature branching conveyor
+ cube(world,8.8,.72,1.65,0x465869,-1.15,.2,.15);cube(world,8.4,.10,1.38,0x151f2b,-1.15,.63,.15);
+ for(let i=0;i<16;i++){const x=-5+i*.51;cube(world,.15,.015,1.32,i%2?0x2d404c:0x273845,x,.70,.15)}
+ for(let z of [-.7,1])cube(world,8.4,.18,.11,0xecc552,-1.15,.83,z);
+ for(let x of [-4.5,-1.5,1.8])for(let z of [-.65,.95])cube(world,.13,.83,.14,0x67879a,x,-.1,z);
+ const scanner=new THREE.Group();scanner.position.set(-.2,0,.15);world.add(scanner);for(let z of [-1.0,1.3])cube(scanner,.16,1.5,.16,0x1cb6d2,0,1.2,z);cube(scanner,.24,.2,2.55,0x1cb6d2,0,2.0,.15);const scanlabel=labelSprite('VISION SENSOR');scanlabel.position.set(0,2.50,.15);scanner.add(scanlabel);
+ // Diverter servo at the end
+ const pedestal=cyl(world,.42,.47,.55,0xe1a639,3.3,.88,.15);gate=new THREE.Group();gate.position.set(3.3,1.19,.15);world.add(gate);cube(gate,1,.16,.16,0xfcde79,.49,0,0);
+ const binZ=[-2.55,.15,2.85];for(let i=0;i<3;i++){const bin=new THREE.Group();bin.position.set(5.25,0,binZ[i]);world.add(bin);cube(bin,1.55,.22,1.65,[0xb34c4f,0x356a9f,0x3b996e][i],0,.23,0);for(let x of [-.76,.76])cube(bin,.10,.67,1.65,0x607888,x,.62,0);for(let z of [-.82,.82])cube(bin,1.55,.67,.10,0x607888,0,.62,z);let label=labelSprite(['35° LEFT','90° CENTER','145° RIGHT'][i]);label.scale.set(1.65,.34,1);label.position.set(0,1.30,0);bin.add(label)}
+ const beltlabel=labelSprite('AUTO SORTING CONVEYOR');beltlabel.position.set(-2.6,2.1,-.1);world.add(beltlabel);
+ makeLiveBox(0);
+}
+function makeLiveBox(i){if(liveBox){world.remove(liveBox);liveBox=null}const st=task();if(i>=st.items.length)return;
+ const item=st.items[i],group=new THREE.Group();group.position.set(-5,1.04,.15);
+ cube(group,.76,.65,.68,{RED:0xd76462,BLUE:0x4caaf2,GREEN:0x42c590}[item.color],0,0,0);
+ cube(group,.19,.02,.7,0xe4d1a1,0,.335,0);const tag=labelSprite(item.kind==='NORMAL'?item.color:item.kind,'#142a38');tag.scale.set(1.23,.24,1);tag.position.set(0,.60,0);group.add(tag);world.add(group);liveBox=group;return group}
+function updateMeter(n,total){$('factory-meter').textContent=n+' / '+total}
+function resize(){if(!renderer||host.hidden)return;const r=$('factory-scene'),w=r.clientWidth,h=r.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
+function updateCamera(){if(!camera)return;camera.position.set(Math.sin(orbit)*Math.cos(elev)*dist,Math.sin(elev)*dist,Math.cos(orbit)*Math.cos(elev)*dist);camera.lookAt(0,.4,0)}
+function init(){if(ready)return true;if(typeof THREE==='undefined'){message('โหลด Three.js ไม่สำเร็จ ต้องเชื่อมต่ออินเทอร์เน็ตเพื่อแสดงฉาก 3D','error');return false}
+ try{scene=new THREE.Scene();scene.background=new THREE.Color(0x101e30);scene.fog=new THREE.Fog(0x101e30,21,35);camera=new THREE.PerspectiveCamera(45,1,.05,70);
+ renderer=new THREE.WebGLRenderer({canvas:$('factory-canvas'),antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));renderer.outputEncoding=THREE.sRGBEncoding;renderer.shadowMap.enabled=true;
+ scene.add(new THREE.HemisphereLight(0xa7dfff,0x2a435d,1.18));const sun=new THREE.DirectionalLight(0xffffff,1.13);sun.position.set(-5,12,9);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-15;sun.shadow.camera.right=15;sun.shadow.camera.top=15;sun.shadow.camera.bottom=-15;scene.add(sun);
+ const warm=new THREE.PointLight(0xffcd75,.83,20);warm.position.set(3,5,1);scene.add(warm);
+ ready=true;updateCamera();new ResizeObserver(resize).observe($('factory-scene'));const cv=$('factory-canvas');
+ cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};cv.setPointerCapture?.(e.pointerId)});
+ cv.addEventListener('pointermove',e=>{if(!drag)return;orbit+=(e.clientX-drag.x)*.009;elev=Math.max(.22,Math.min(1.3,elev-(e.clientY-drag.y)*.006));drag={x:e.clientX,y:e.clientY};updateCamera()});cv.addEventListener('pointerup',()=>drag=null);cv.addEventListener('pointercancel',()=>drag=null);
+ cv.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(10,Math.min(26,dist+Math.sign(e.deltaY)*1.05));updateCamera()},{passive:false});
+ requestAnimationFrame(frame);resetWorld();return true}catch(e){message('ไม่สามารถเริ่มระบบ 3D: '+e.message,'error');console.error(e);return false}
+}
+function resetAnimation(){events=[];tick=0;eventStart=0;running=false;if($('factory-run')){$('factory-run').disabled=false;$('factory-run').textContent='▶ RUN • เริ่มการผลิต'}}
+function onEvent(ev){if(mode==='assembly'){
+ if(ev.kind==='move'){arrangeArm(ev.target);$('factory-world-detail').textContent='MOVE TO → '+ev.target}
+ if(ev.kind==='pick'){rotateJoint(armJoints.S5_Finger_L,'z',-.16);rotateJoint(armJoints.S5_Finger_R,'z',.16);if(heldMesh){world.remove(heldMesh);heldMesh=null}const src=partVisuals[ev.part];if(src)src.visible=false;heldMesh=makePart(ev.part);heldMesh.position.set(-1.55,1.85,.65);world.add(heldMesh);$('factory-world-detail').textContent='GRIP CLOSE • '+ev.part}
+ if(ev.kind==='place'){rotateJoint(armJoints.S5_Finger_L,'z',.05);rotateJoint(armJoints.S5_Finger_R,'z',-.05);if(heldMesh){world.remove(heldMesh);heldMesh=null}installPart(ev.part);updateMeter(ev.done,task().need.length);$('factory-world-detail').textContent='INSTALLED ✓ '+ev.part}
+ if(ev.kind==='joint'){const bone=armJoints[['','S1_Base','S2_Shoulder','S3_Elbow','S4_Wrist'][ev.num]];rotateJoint(bone,ev.num===1?'y':'z',(ev.angle-90)*Math.PI/180);$('factory-world-detail').textContent=`SERVO${ev.num} → ${ev.angle}°`}
+ }else{
+ if(ev.kind==='gate'){if(gate)gate.rotation.y=(ev.angle-90)*Math.PI/180;$('factory-world-detail').textContent='SERVO 6 → '+ev.angle+'°'}
+ if(ev.kind==='ship'){updateMeter(ev.index+1,task().items.length);if(liveBox){const z=[-2.55,.15,2.85][Math.abs(ev.actual-35)<15?0:Math.abs(ev.actual-90)<15?1:2];liveBox.position.set(5.25+((ev.index%3)-1)*.28,.95+Math.floor(ev.index/9)*.37,z+((ev.index%2)*.35-.15));liveBox=null}const grade=ev.ok?'✓ ถูกช่อง':'✕ ผิดช่อง';$('factory-world-detail').textContent=grade+` • กล่อง #${ev.index+1}`;
+  if(ev.index!==task().items.length-1) makeLiveBox(ev.index+1);
+ }
+ }
+}
+let endResult=null;
+function frame(now){requestAnimationFrame(frame);if(!active||!ready)return;
+ if(running){const dt=now-eventStart;if(!eventStart)eventStart=now;
+  if(tick<events.length&&dt>310){let e=events[tick++];onEvent(e);eventStart=now;$('factory-lines').textContent=`STEP ${tick} / ${events.length}`}
+  if(tick>=events.length&&dt>500){running=false;$('factory-run').disabled=false;$('factory-run').textContent='▶ RUN • เริ่มการผลิต';finish(endResult)}
+ }
+ if(mode==='sorting'&&liveBox&&running){liveBox.position.x=Math.max(-5,Math.min(2.1,liveBox.position.x+.035))}
+ if(mode==='assembly'){for(const joint of Object.values(armJoints)){if(joint&&joint.userData.factRotAxis){const axis=joint.userData.factRotAxis;joint.rotation[axis]+= (joint.userData.factRotTarget-joint.rotation[axis])*.12}}}
+ renderer.render(scene,camera)
+}
+function finish(result){if(!result)return;if(result.valid){success=true;(passed[mode]||(passed[mode]=[]))[level]=true;save();message('✅ ผลิตสำเร็จ! '+result.total+' / '+result.total+' รายการถูกต้อง','good');$('factory-win-icon').textContent=mode==='assembly'?'🚗🎉':'📦🏆';$('factory-win-title').textContent=mode==='assembly'?'ประกอบ AGV สำเร็จ!':'คัดแยกสินค้าครบแล้ว!';$('factory-win-detail').textContent=mode==='assembly'?'แขนกลประกอบชิ้นส่วน '+result.total+' ชิ้นสำเร็จด้วยคำสั่งที่เขียนเอง':'ระบบ Servo คัดแยกถูกต้อง '+result.good+' / '+result.total+' กล่อง';$('factory-win-next').textContent=level===4?'🏭 กลับด่านแรก':'ด่านต่อไป ➜';$('factory-win').hidden=false;loadButtonsOnly()}
+ else message('⚠️ ยังไม่ผ่านภารกิจ\n'+result.errors.slice(0,5).join('\n'),'error')}
+function loadButtonsOnly(){const levels=$('factory-levels');levels.replaceChildren();let unlocked=0;while(progress()[unlocked]&&unlocked<4)unlocked++;for(let i=0;i<5;i++){const b=document.createElement('button');b.className='fact-level'+(i===level?' active':'')+(progress()[i]?' passed':'');b.textContent=progress()[i]?'✓'+(i+1):i>unlocked?'🔒':String(i+1);b.disabled=i>unlocked;b.onclick=()=>{level=i;loadLevel()};levels.append(b)}$('factory-next').disabled=level===4;$('factory-progress').textContent=`🏆 ${progress().filter(Boolean).length}/5 · ${mode==='assembly'?'ประกอบ AGV':'คัดแยกสินค้า'}`}
+function run(){if(running||!active)return;if(!ready&&!init())return;try{let ast=parse($('factory-code').value);if(!ast.length)throw Error('กรุณาเขียนคำสั่งก่อน RUN');let result=simulate(ast);resetAnimation();resetWorld();endResult=result;events=result.events;running=true;eventStart=0;tick=0;
+ $('factory-run').disabled=true;$('factory-run').textContent='⚙️ กำลังประมวลผล...';message('⚙️ กำลังจำลอง '+events.length+' คำสั่ง...'+(result.errors.length?' • มีข้อผิดพลาดที่ต้องแก้ไข':''));
+ if(!events.length){running=false;finish(result)}
+ }catch(e){message('❌ ข้อผิดพลาดของโค้ด: '+e.message,'error')}}
+function reset(){const code=$('factory-code').value;loadLevel();$('factory-code').value=code}
+$('factory-close').onclick=hide;$('factory-tab-assembly').onclick=()=>setMode('assembly');$('factory-tab-sorting').onclick=()=>setMode('sorting');
+$('factory-run').onclick=run;$('factory-reset').onclick=reset;$('factory-example').onclick=()=>{$('factory-code').value=task().code;message('📝 ใส่ตัวอย่างโค้ดแล้ว แก้ไขได้ตามต้องการก่อนกด RUN')};
+$('factory-hint').onclick=()=>message(mode==='assembly'?`💡 ลำดับ: moveTo("${task().need[0]}"); → servo5.setPosition(20); → moveTo("AGV"); → servo5.setPosition(90);`:'💡 เขียน if (readColor() == "RED") { servo6.setPosition(35); } และอย่าลืม nextItem(); เพื่อส่งกล่อง', '');
+function next(){level=level===4?0:level+1;loadLevel()}
+$('factory-next').onclick=next;$('factory-win-next').onclick=next;
+$('factory-left').onclick=()=>{orbit-=.25;updateCamera()};$('factory-right').onclick=()=>{orbit+=.25;updateCamera()};$('factory-home').onclick=()=>{orbit=.75;elev=.70;dist=15.5;updateCamera()};$('factory-plus').onclick=()=>{dist=Math.max(10,dist-1);updateCamera()};$('factory-minus').onclick=()=>{dist=Math.min(26,dist+1);updateCamera()};
+window.addEventListener('keydown',e=>{if(active&&e.key==='Escape')hide()});
+// Public automated test seam: pure parser and gameplay simulation, never execute arbitrary user JS.
+window.__factoryLabTest={parse,simulate,select(m,i){mode=m;level=i},getTask:()=>task()};
+})();
+</script>
+
 </body></html>
